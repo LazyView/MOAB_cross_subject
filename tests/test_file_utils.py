@@ -2,8 +2,13 @@
 Test file utilities to debug subject detection.
 """
 
-from utils.file_utils import get_all_subjects, find_subject_files, parse_filename
+import sys
 from pathlib import Path
+
+# Add project root to path
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
+from utils.file_utils import get_all_subjects, find_subject_files, parse_filename
 
 print("Testing file utilities...")
 print("=" * 60)
@@ -21,6 +26,7 @@ if test_file.exists():
     if file_info:
         print(f"   Parsed successfully:")
         print(f"      Subject ID: {file_info.subject_id}")
+        print(f"      Composite ID: {file_info.composite_id}")
         print(f"      Gender: {file_info.gender}")
         print(f"      Date: {file_info.date}")
         print(f"      Task: {file_info.task}")

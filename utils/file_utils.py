@@ -26,6 +26,11 @@ class FileInfo:
     def is_right_hand(self) -> bool:
         return self.task == 'rh'
 
+    @property
+    def composite_id(self) -> str:
+        """Globally unique subject ID: date_subject_id (e.g., '20201201_1')."""
+        return f"{self.date}_{self.subject_id}"
+
 
 def parse_mochura_filename(filepath: Path) -> Optional[FileInfo]:
     """
@@ -129,7 +134,7 @@ def find_subject_files(data_path: str, subject_id: str) -> Dict[str, List[FileIn
     data_path : str
         Path to data directory
     subject_id : str
-        Subject ID to search for
+        Composite subject ID (date_subject_id, e.g., '20201201_1')
 
     Returns
     -------
@@ -142,7 +147,7 @@ def find_subject_files(data_path: str, subject_id: str) -> Dict[str, List[FileIn
     # Search all .vhdr files recursively
     for vhdr_file in data_dir.rglob('*.vhdr'):
         file_info = parse_filename(vhdr_file)
-        if file_info and file_info.subject_id == subject_id:
+        if file_info and file_info.composite_id == subject_id:
             files[file_info.task].append(file_info)
 
     # Sort by run number
@@ -156,6 +161,8 @@ def get_all_subjects(data_path: str) -> List[str]:
     """
     Get list of all unique subject IDs in the dataset.
 
+    Uses composite IDs (date_subject_id) to ensure global uniqueness.
+
     Parameters
     ----------
     data_path : str
@@ -164,7 +171,7 @@ def get_all_subjects(data_path: str) -> List[str]:
     Returns
     -------
     list
-        Sorted list of unique subject IDs
+        Sorted list of unique composite subject IDs (e.g., '20201201_1')
     """
     data_dir = Path(data_path)
     subjects = set()
@@ -172,6 +179,6 @@ def get_all_subjects(data_path: str) -> List[str]:
     for vhdr_file in data_dir.rglob('*.vhdr'):
         file_info = parse_filename(vhdr_file)
         if file_info:
-            subjects.add(file_info.subject_id)
+            subjects.add(file_info.composite_id)
 
     return sorted(subjects)
