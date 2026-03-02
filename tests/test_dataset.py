@@ -2,6 +2,10 @@
 Test script to verify custom MOABB dataset loading for subject 1.
 """
 
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
 from dataset.custom_dataset import MotorImageryDataset
 import mne
 

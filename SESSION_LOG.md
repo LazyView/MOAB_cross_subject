@@ -28,5 +28,31 @@
 - Currently grouping files from different dates as same subject (ID "1" spans multiple dates)
 - Need to either: (a) make subject_id include date, or (b) only use files from specific date per subject
 - MOABB warning about class name abbreviation (non-critical)
-- Master thesis concatenated runs - need to decide if we do this or keep separate
+- Master thesis concatenated runs - need to decide if we do this or keep separately
 - Currently loading all 18 channels - need channel selection logic
+
+## Session 2026-02-24
+
+**Completed:**
+- Confirmed subject ID strategy: composite `DDMMYYYY_ID` already implemented, 29 subjects detected
+- Created `requirements.txt` with direct dependencies only (mne, moabb, numpy, pyyaml)
+- Fixed `tests/test_dataset.py` and `tests/raw.py`: missing `sys.path.insert` and wrong class name
+- Created `tests/inspect_raw.py` to inspect channel names and event codes
+- Confirmed channels: C3(4), C4(5), Cz(14) present; channels 17/18 are unnamed reference/ground
+- Confirmed event codes: S1=rest start, S2=rest mid, S4=movement (Event 5 absent in test file)
+- Added channel selection `raw.pick(['C3','C4','Cz'])` in `_load_and_prepare_raw`
+- Added resample to 500 Hz and bandpass 8-30 Hz in `_load_and_prepare_raw`
+- Created `preprocessing/artifact_rejection.py` with `reject_by_peak_to_peak()`
+- Decided 2-class MI (left_hand vs right_hand); removed rest from dataset event_id
+- Created `evaluation/extract_epochs.py` using MOABB MotorImagery paradigm
+- Fixed MOABB integration bugs: `self.data_path` shadowing method → renamed to `self.data_dir`; `code='MotorImageryDataset'`; session name `'session_1'` → `'0'`
+- Epoch extraction via `paradigm.get_data()` working
+
+**Next steps:**
+- Apply artifact rejection after epoch extraction
+- Implement cross-subject evaluation
+- Integrate baseline correction (-3.5 to -3.0s)
+
+**Issues/Notes:**
+- Saleh format files (HR_) recorded at 1000 Hz; resample step handles this correctly
+- Run names use `run_lh_1`, `run_rh_1` format — MOABB keeps runs separate (not concatenated)
