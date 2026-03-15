@@ -56,3 +56,25 @@
 **Issues/Notes:**
 - Saleh format files (HR_) recorded at 1000 Hz; resample step handles this correctly
 - Run names use `run_lh_1`, `run_rh_1` format — MOABB keeps runs separate (not concatenated)
+
+## Session 2026-03-15
+
+**Completed:**
+- Created `evaluation/cross_subject_eval.py` with MOABB `CrossSubjectEvaluation` (LOSO)
+- Added `evaluation.csp_components: 4` to `config/dataset_config.yaml`
+- Fixed MOABB run name validation: renamed `run_lh_1` → `0lh1` style (must start with integer, no underscores)
+- Fixed MOABB paradigm: `reject` is not a valid param — removed it
+- Added baseline correction via paradigm `baseline=(-3.5, -3.0)`
+- Added CSP+SVM and CSP+LR pipelines for comparison
+- Results: CSP+LDA 0.674±0.218, CSP+LR 0.674±0.218, CSP+SVM 0.631±0.214 (29 subjects)
+
+**Next steps:**
+- Save results to CSV for thesis reporting
+- Investigate below-chance subjects (7: 0.365, 8: 0.174) — possible data/label issue
+- Consider SVM hyperparameter tuning (C, gamma) or drop it
+- Add results visualization (per-subject bar chart)
+
+**Issues/Notes:**
+- CSP+LDA and CSP+LR are identical — LR adds nothing, LDA is preferred
+- CSP+SVM inconsistent: better for subjects 7/8, much worse for 3/15 — needs tuning before thesis use
+- Artifact rejection not integrated into MOABB eval loop (paradigm doesn't support `reject` param in this version)

@@ -33,3 +33,7 @@ classes:
   rest: 2            # Rest class label
   right_hand: 5      # Right hand movement
   left_hand: 6       # Left hand movement (remapped from 5 in lh files)
+
+# Evaluation parameters
+evaluation:
+  csp_components: 4  # Number of CSP spatial filters

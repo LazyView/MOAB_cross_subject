@@ -65,12 +65,14 @@ class MotorImageryDataset(BaseDataset):
         session_name = '0'
         sessions = {session_name: {}}
 
-        for file_info in files['lh']:
-            run_name = f'run_lh_{file_info.run}'
+        # Run names must start with an integer (MOABB validation requirement)
+        for idx, file_info in enumerate(files['lh']):
+            run_name = f'{idx}lh{file_info.run}'
             sessions[session_name][run_name] = self._load_and_prepare_raw(file_info.file_path, task='lh')
 
-        for file_info in files['rh']:
-            run_name = f'run_rh_{file_info.run}'
+        lh_count = len(files['lh'])
+        for idx, file_info in enumerate(files['rh']):
+            run_name = f'{lh_count + idx}rh{file_info.run}'
             sessions[session_name][run_name] = self._load_and_prepare_raw(file_info.file_path, task='rh')
 
         return sessions
