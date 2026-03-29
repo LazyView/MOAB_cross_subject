@@ -1,0 +1,299 @@
+% *****************************************************************************
+%
+%   Bachelor's Thesis
+%   Application of Advanced Machine Learning Models for BCI Data
+%   Classification in Neurorehabilitation
+%
+%   Filip Chlad
+%   Faculty of Applied Sciences, University of West Bohemia
+%
+% *****************************************************************************
+
+\documentclass[english, bc, kiv, he, iso690alph, pdf]{fasthesis}
+\usepackage{blindtext}
+\usepackage{csquotes}
+
+% -----------------------------------------------------------------------------
+%   THESIS METADATA
+% -----------------------------------------------------------------------------
+\title{Application of Advanced Machine Learning Models for BCI Data Classification in Neurorehabilitation}
+
+\author{Filip}{Chlad}{}{}
+\supervisor{doc. Ing. Roman Mouček, Ph.D.}
+\stagworkid{A23B0072P}
+\assignment{temata_vskp_-_podklady_pro_zadani_vskp.pdf}
+\signdate{1}{6}{2025}{Pilsen}
+
+\addbibresource{thesis.bib}
+
+% -----------------------------------------------------------------------------
+%   ABSTRACT
+% -----------------------------------------------------------------------------
+\abstract{%
+% English abstract
+This thesis presents a cross-subject Motor Imagery Brain-Computer Interface (BCI) pipeline applied to EEG data in the context of neurorehabilitation. A custom dataset class was implemented using the MOABB framework to load and preprocess multi-subject EEG recordings in BrainVision format. The preprocessing pipeline includes channel selection, bandpass filtering (8--30\,Hz), resampling, baseline correction, and epoch extraction. Cross-subject evaluation was performed using a Leave-One-Subject-Out scheme with Common Spatial Patterns (CSP) combined with Linear Discriminant Analysis (LDA), Logistic Regression (LR), and Support Vector Machine (SVM) classifiers. The best-performing pipeline, CSP+LDA, achieved a mean accuracy of 70.3\,\% on 27 subjects after excluding two subjects with atypical lateralization patterns.
+}{%
+% Czech abstract
+Tato práce představuje pipeline pro klasifikaci motorické představivosti (Motor Imagery) napříč subjekty pomocí EEG dat v kontextu neurorehabilitace. Byla implementována vlastní třída datasetu využívající framework MOABB pro načítání a předzpracování EEG záznamů ve formátu BrainVision. Pipeline zahrnuje výběr kanálů, pásmovou filtraci (8--30\,Hz), převzorkování, korekci základní linie a extrakci epoch. Hodnocení napříč subjekty bylo provedeno schématem Leave-One-Subject-Out s metodou Common Spatial Patterns (CSP) v kombinaci s klasifikátory LDA, LR a SVM. Nejlepší pipeline CSP+LDA dosáhla průměrné přesnosti 70,3\,\% na 27 subjektech po vyloučení dvou subjektů s atypickými vzory lateralizace.
+}
+
+\keywords{Brain-Computer Interface, Motor Imagery, EEG, CSP, MOABB, cross-subject classification, neurorehabilitation}
+
+% -----------------------------------------------------------------------------
+%   ACKNOWLEDGEMENT
+% -----------------------------------------------------------------------------
+\acknowledgement{I would like to thank my supervisor, doc. Ing. Roman Mouček, Ph.D., for his guidance and support throughout this thesis.}
+
+% -----------------------------------------------------------------------------
+%   DOCUMENT BODY
+% -----------------------------------------------------------------------------
+\begin{document}
+\frontpages
+
+\tableofcontents
+
+% =============================================================================
+\chapter{Introduction}
+% =============================================================================
+
+\blindtext % placeholder — replace with real text
+
+% =============================================================================
+\chapter{Theoretical Background}
+% =============================================================================
+
+% -----------------------------------------------------------------------------
+\section{Brain-Computer Interfaces}
+% -----------------------------------------------------------------------------
+
+A brain-computer interface (BCI) is a system that establishes a direct communication channel between the brain and an external device, bypassing the body's conventional neuromuscular pathways~\cite{wolpaw2002brain}. Rather than relying on peripheral nerves or muscles, a BCI detects and interprets neural activity and translates it into commands that can control software, prosthetics, or rehabilitation devices. This makes BCIs particularly relevant for individuals with severe motor impairments caused by stroke, spinal cord injury, or neurodegenerative conditions such as ALS~\cite{yadav2025decoding}.
+
+\subsection{Why EEG}
+
+Several neuroimaging modalities can serve as the signal source for a BCI, including functional magnetic resonance imaging (fMRI), near-infrared spectroscopy (fNIRS), electrocorticography (ECoG), and electroencephalography (EEG). Among these, EEG has become the dominant choice for non-invasive BCI research due to its millisecond temporal resolution, low cost, portability, and absence of surgical risk~\cite{yadav2025decoding}. While fMRI offers superior spatial resolution, its low temporal resolution and requirement for large stationary equipment make it impractical for real-time BCI use. ECoG provides excellent signal quality but requires invasive electrode implantation. EEG thus represents the best practical trade-off between signal quality and usability.
+
+\subsection{BCI Paradigms}
+
+BCI paradigms define how the user interacts with the system to generate interpretable brain signals. They are broadly categorised into two classes based on the origin of the signal~\cite{yadav2025decoding}:
+
+\begin{itemize}
+    \item \textbf{Exogenous paradigms} rely on the brain's response to external stimuli. Steady-State Visual Evoked Potentials (SSVEP) exploit the visual cortex's response to flickering stimuli at specific frequencies. The P300 paradigm detects a positive deflection in the EEG signal approximately 300\,ms after a rare, attended stimulus.
+    \item \textbf{Endogenous paradigms} are driven by internal mental activity without any external stimulus. Motor Imagery (MI) is the most widely used endogenous paradigm and forms the basis of this thesis.
+\end{itemize}
+
+% -----------------------------------------------------------------------------
+\section{Motor Imagery}
+% -----------------------------------------------------------------------------
+
+Motor imagery (MI) refers to the mental simulation of a movement without any actual muscle activation or physical execution~\cite{yadav2025decoding}. When a person imagines moving a limb, the same sensorimotor cortex regions that would be active during real movement become engaged, producing measurable changes in the EEG signal.
+
+\subsection{Neurophysiological Basis}
+
+The neural correlate of MI is a phenomenon known as event-related desynchronisation and synchronisation (ERD/ERS), first described by Pfurtscheller and Lopes da Silva~\cite{pfurtscheller1999event}. During imagined or real movement, oscillatory power in specific frequency bands decreases (ERD) over the contralateral motor cortex, followed by a power increase (ERS) after movement cessation. For MI-based BCIs, the relevant frequency bands are:
+
+\begin{itemize}
+    \item \textbf{Mu rhythm} (8--13\,Hz): generated by the sensorimotor cortex, strongly suppressed during MI.
+    \item \textbf{Beta rhythm} (14--30\,Hz): also suppressed during MI, with a characteristic post-movement beta rebound.
+\end{itemize}
+
+Crucially, this activity is spatially lateralised. Left-hand MI produces ERD predominantly over the right hemisphere (electrode C4), while right-hand MI produces ERD over the left hemisphere (electrode C3). This hemispheric asymmetry is the fundamental signal that allows binary MI classification~\cite{pfurtscheller1999event}.
+
+\subsection{Motor Imagery in Neurorehabilitation}
+
+MI-BCIs have found a well-established role in neurorehabilitation, particularly for stroke and spinal cord injury patients. By coupling imagined movements with real-time feedback — via robotic exoskeletons, functional electrical stimulation, or virtual reality — MI-BCIs can drive neuroplasticity and support motor recovery~\cite{yadav2025decoding}. The paradigm requires no external stimulation, making it applicable even for patients with sensory impairments. Its primary challenge is inter-subject variability: EEG patterns during MI differ substantially between individuals due to anatomical differences, varying cognitive strategies, and differences in MI ability.
+
+% -----------------------------------------------------------------------------
+\section{EEG Signal Processing}
+% -----------------------------------------------------------------------------
+
+Raw EEG recordings contain a mixture of neural activity, physiological artefacts (muscle and eye movements), and environmental noise. A preprocessing pipeline is required to isolate the signal components relevant for MI classification.
+
+\subsection{Spatial Filtering and Channel Selection}
+
+Full EEG caps may contain 32 to 256 electrodes, but for MI classification only the electrodes over the sensorimotor cortex are informative. The standard electrode set for binary left/right-hand MI consists of C3, C4, and Cz according to the international 10--20 system~\cite{klem1999ten}. C3 and C4 are positioned directly over the left and right motor cortices respectively, while Cz lies at the vertex. Restricting analysis to these three channels reduces dimensionality, computational cost, and the risk of overfitting.
+
+\subsection{Temporal Filtering}
+
+Bandpass filtering in the 8--30\,Hz range retains the mu and beta rhythms associated with MI while suppressing slow drifts (below 8\,Hz) and high-frequency noise and muscle artefacts (above 30\,Hz). In practice, a finite impulse response (FIR) or infinite impulse response (IIR) filter is applied to the continuous signal prior to epoching.
+
+\subsection{Epoching and Baseline Correction}
+
+An epoch is a time-locked segment of the continuous EEG signal extracted around an event marker. For each MI trial, an epoch spanning the pre-stimulus baseline through the movement period is extracted. Baseline correction removes slow voltage drifts by subtracting the mean amplitude of a pre-stimulus interval from the entire epoch, ensuring that subsequent features reflect event-related changes rather than absolute signal level.
+
+% -----------------------------------------------------------------------------
+\section{Common Spatial Patterns}
+% -----------------------------------------------------------------------------
+
+Common Spatial Patterns (CSP) is a supervised spatial filtering algorithm specifically designed for two-class EEG problems~\cite{blankertz2008optimizing}. Given labelled epochs from two classes, CSP learns a set of spatial filters — linear combinations of electrode signals — that simultaneously maximise the variance of one class while minimising the variance of the other.
+
+Formally, CSP solves the generalised eigenvalue problem:
+\begin{equation}
+    \Sigma_1 \, \mathbf{w} = \lambda \, \Sigma_2 \, \mathbf{w},
+\end{equation}
+where $\Sigma_1$ and $\Sigma_2$ are the normalised spatial covariance matrices of the two classes and $\mathbf{w}$ is a spatial filter vector. The filters with the largest and smallest eigenvalues $\lambda$ are the most discriminative: they capture the channels and their combinations where the variance ratio between classes is maximised.
+
+For each epoch, $n$ CSP filters are applied and the log-variance of the resulting filtered signals is computed:
+\begin{equation}
+    f_k = \log \left( \frac{\mathrm{var}(\mathbf{w}_k^\top \mathbf{x})}{\sum_j \mathrm{var}(\mathbf{w}_j^\top \mathbf{x})} \right),
+\end{equation}
+yielding a compact feature vector of $n$ values per epoch. The log transformation stabilises the variance and produces approximately Gaussian features. In this thesis, $n = 4$ CSP components are used (2 per class).
+
+CSP is particularly well-suited to MI classification because the ERD/ERS patterns are inherently spatial: the discriminative information lies in which hemisphere shows power decrease, not in the raw amplitude of individual channels.
+
+% -----------------------------------------------------------------------------
+\section{Classification}
+% -----------------------------------------------------------------------------
+
+\subsection{Linear Discriminant Analysis}
+
+Linear Discriminant Analysis (LDA) is the canonical classifier paired with CSP features~\cite{lotte2018review}. LDA models each class as a multivariate Gaussian distribution and assumes equal covariance across classes. The resulting decision boundary is the linear hyperplane that maximises the ratio of between-class scatter to within-class scatter. For CSP log-variance features, which are approximately Gaussian by construction, LDA's assumptions are well satisfied. LDA has no hyperparameters to tune, making it robust and reproducible — particularly important for cross-subject evaluation where training data per fold is limited.
+
+\subsection{Logistic Regression and SVM}
+
+Logistic Regression (LR) is a discriminative linear classifier that models the posterior class probability directly. Unlike LDA, it does not assume a generative Gaussian model, making it marginally more robust when the Gaussian assumption is violated. However, for the low-dimensional (4-feature) CSP output used here, LDA and LR produce nearly identical decision boundaries.
+
+Support Vector Machines (SVM) with a radial basis function (RBF) kernel can model non-linear class boundaries in feature space. In principle, this additional flexibility could benefit subjects whose CSP features do not separate linearly. In practice, SVM performance on this dataset was lower than LDA, likely because the four-dimensional CSP feature space is already simple enough that the non-linear capacity confers no advantage, while the sensitivity to the regularisation parameter \texttt{C} and kernel width $\gamma$ introduces variance without tuning.
+
+% -----------------------------------------------------------------------------
+\section{Cross-Subject Evaluation}
+% -----------------------------------------------------------------------------
+
+\subsection{Inter-Subject Variability}
+
+A fundamental challenge in EEG-based BCIs is that neural signals differ substantially between individuals. Sources of variability include anatomical differences in brain structure and skull thickness, individual differences in cognitive strategies during MI, electrode placement tolerances, and neuroplasticity effects~\cite{yadav2025decoding}. As a result, a classifier trained on one subject typically performs poorly when applied to another without retraining or calibration.
+
+\subsection{Leave-One-Subject-Out Evaluation}
+
+Cross-subject evaluation aims to assess how well a model generalises to a previously unseen user. The standard protocol is Leave-One-Subject-Out (LOSO) cross-validation: given $N$ subjects, the model is trained on $N-1$ subjects and evaluated on the remaining subject. This is repeated for each subject and the mean accuracy across all $N$ folds is reported~\cite{jayaram2018moabb}.
+
+LOSO directly answers the question relevant to calibration-free BCI deployment: \textit{can a model trained on a population of users decode motor imagery for a new, unseen user without any calibration data?} It is a pessimistic estimate — in practice, even a small number of calibration trials from the new user would improve accuracy — but it represents the most realistic and stringent evaluation scenario.
+
+% -----------------------------------------------------------------------------
+\section{MOABB Framework}
+% -----------------------------------------------------------------------------
+
+The Mother of All BCI Benchmarks (MOABB) is an open-source Python framework for reproducible evaluation of BCI algorithms~\cite{jayaram2018moabb}. It provides standardised data loading, preprocessing pipelines, and evaluation protocols across a large collection of public EEG datasets, enabling fair comparison between methods.
+
+For this thesis, MOABB's \texttt{CrossSubjectEvaluation} class implements the LOSO protocol, handling epoch extraction, train/test splitting, and result aggregation in a consistent manner. The \texttt{MotorImagery} paradigm class applies bandpass filtering, baseline correction, and event-locked epoching according to a unified interface. By building on MOABB, the pipeline presented in this thesis is directly comparable to results reported for other methods on standard benchmark datasets.
+
+% =============================================================================
+\chapter{Dataset and Preprocessing}
+% =============================================================================
+
+% -----------------------------------------------------------------------------
+\section{Dataset Description}
+% -----------------------------------------------------------------------------
+
+The dataset used in this thesis consists of EEG recordings collected from 29 subjects performing motor imagery tasks. The recordings span multiple sessions conducted between 2020 and 2023 and originate from two distinct experimental protocols, referred to here as the Mochura and Saleh formats, reflecting differences in the recording setup and file naming conventions.
+
+\subsection{Recording Equipment and Format}
+
+All recordings were acquired using the BrainProducts V-AMP 16 amplifier and stored in BrainVision format, which consists of three files per recording: a binary data file (\texttt{.eeg}), a header file (\texttt{.vhdr}) containing channel and acquisition metadata, and a marker file (\texttt{.vmrk}) containing timestamped event annotations. Each recording session is stored in a date-named folder (\texttt{DD\_MM\_YYYY}).
+
+The raw recordings contain 18 EEG channels sampled at either 500\,Hz (Mochura protocol) or 1000\,Hz (Saleh protocol).
+
+\subsection{Recording Protocols}
+
+\textbf{Mochura protocol.} The majority of subjects were recorded under a standard MI paradigm. Files follow the naming convention \texttt{<ID><gender><date><task><run>}, for example \texttt{1z01122020lh1} denotes subject~1, female, recorded on 01/12/2020, left-hand MI, run~1. Each subject has separate files for left-hand (\texttt{lh}) and right-hand (\texttt{rh}) runs, with some subjects having two runs per hand.
+
+\textbf{Saleh protocol.} A subset of subjects was recorded with an additional haptic feedback component. Files follow the convention \texttt{HR\_<date>\_<ID>\_<condition>\_<side>}, where \texttt{condition} indicates whether vibrotactile stimulation was present and \texttt{side} encodes the hand (\texttt{leva} = left, \texttt{prava} = right). For the purposes of this thesis, the haptic condition is not used as a classification variable; left and right recordings are treated equivalently to those from the Mochura protocol.
+
+\subsection{Experimental Paradigm}
+
+Each recording consists of alternating rest and movement phases. The rest phase lasts 10 seconds and is initiated by an LED cue (Event~1). The mid-rest marker (Event~2) is placed 5 seconds after the start of rest and serves as the reference point for rest epoch extraction. The movement phase follows and spans 20 seconds. Event~5 marks the first detected force onset (first movement), and Event~4 marks subsequent movements within the same phase.
+
+Importantly, Event~5 is absent in many files. In such cases, the first Event~4 occurring after the most recent Event~2 is used as the movement onset, provided no Event~5 preceded it within the same phase. This fallback logic is applied consistently across all recordings.
+
+\subsection{Subject Identification}
+
+Subject IDs are only unique within a single recording date, not globally. To ensure globally unique identifiers, a composite key of the form \texttt{DDMMYYYY\_ID} is used (e.g., \texttt{01122020\_1}). This scheme produces 29 unique subjects across all recording sessions.
+
+\subsection{Classification Task}
+
+The thesis addresses binary motor imagery classification: left-hand MI versus right-hand MI. The class of each epoch is determined solely by the filename (\texttt{lh} or \texttt{rh}), not by event codes, since both hands share the same event marker values within their respective files. Rest epochs are not used in the final classification pipeline.
+
+% -----------------------------------------------------------------------------
+\section{Preprocessing Pipeline}
+% -----------------------------------------------------------------------------
+
+The preprocessing pipeline is applied identically to all recordings before epoch extraction. All steps are implemented within a custom MOABB dataset class and executed on loading. The pipeline parameters are summarised in Table~\ref{tab:preprocessing}.
+
+\begin{table}[ht]
+    \centering
+    \caption{Preprocessing pipeline parameters.}
+    \label{tab:preprocessing}
+    \begin{tabular}{ll}
+        \hline
+        \textbf{Step} & \textbf{Parameter} \\
+        \hline
+        Channel selection   & C3, C4, Cz \\
+        Target sampling rate & 500\,Hz \\
+        Bandpass filter      & 8--30\,Hz \\
+        Epoch window         & $-3.5$\,s to $+0.5$\,s relative to movement onset \\
+        Baseline correction  & $-3.5$\,s to $-3.0$\,s \\
+        \hline
+    \end{tabular}
+\end{table}
+
+\subsection{Channel Selection}
+
+Of the 18 recorded channels, only C3, C4, and Cz are retained. These three electrodes overlie the left motor cortex, right motor cortex, and vertex respectively, and capture the lateralised ERD/ERS patterns that are the basis of left/right hand MI classification. Discarding the remaining channels reduces dimensionality and avoids introducing irrelevant signal components.
+
+\subsection{Resampling}
+
+Saleh protocol recordings acquired at 1000\,Hz are downsampled to 500\,Hz to match the Mochura protocol. This ensures a uniform time axis and epoch length across all subjects. At 500\,Hz, the 4-second epoch window (tmin $= -3.5$\,s, tmax $= +0.5$\,s) yields 2001 samples per epoch per channel.
+
+\subsection{Bandpass Filtering}
+
+A bandpass filter with a passband of 8--30\,Hz is applied to the continuous signal after resampling. This retains the mu and beta rhythms associated with motor imagery while suppressing slow drifts below 8\,Hz and high-frequency noise and muscle artefacts above 30\,Hz. Filtering is performed on the continuous raw signal prior to epoching to avoid edge effects at epoch boundaries.
+
+\subsection{Epoch Extraction and Baseline Correction}
+
+Epochs are extracted in a window of $-3.5$\,s to $+0.5$\,s relative to each movement onset marker. The pre-stimulus interval from $-3.5$\,s to $-3.0$\,s serves as the baseline: its mean is subtracted from the entire epoch for each channel, removing residual slow voltage offsets and making epoch amplitudes comparable across trials and subjects.
+
+Each recording contributes approximately 20 epochs per class per run. Across all 29 subjects, the dataset yields a total of approximately 840 epochs per class.
+
+\subsection{MOABB Integration}
+
+The preprocessing pipeline is encapsulated in a custom subclass of MOABB's \texttt{BaseDataset}, which implements the \texttt{\_get\_single\_subject\_data} interface. On each call, the class locates all \texttt{.vhdr} files belonging to the requested subject using the composite ID scheme, applies the full preprocessing pipeline, maps event markers to class annotations, and returns the preprocessed \texttt{Raw} objects organised by session and run. This design allows MOABB's \texttt{CrossSubjectEvaluation} to handle epoch extraction and train/test splitting in a fully standardised manner.
+
+% =============================================================================
+\chapter{Methods}
+% =============================================================================
+
+\section{Common Spatial Patterns}
+
+\blindtext
+
+\section{Classifiers}
+
+\blindtext
+
+\section{Evaluation Strategy}
+
+\blindtext
+
+% =============================================================================
+\chapter{Results}
+% =============================================================================
+
+\blindtext
+
+% =============================================================================
+\chapter{Discussion}
+% =============================================================================
+
+\blindtext
+
+% =============================================================================
+\chapter{Conclusion}
+% =============================================================================
+
+\blindtext
+
+% -----------------------------------------------------------------------------
+%   BIBLIOGRAPHY
+% -----------------------------------------------------------------------------
+\printbibliography
+
+\end{document}

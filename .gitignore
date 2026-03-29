@@ -1,5 +1,7 @@
 venv
 data
 __pycache__
-LaTeX_thesis/
 *.pdf
+LaTeX_thesis/sablona/*
+!LaTeX_thesis/sablona/thesis.tex
+!LaTeX_thesis/material.tex

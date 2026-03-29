@@ -1,0 +1,645 @@
+\documentclass[12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{amsmath}
+
+\title{Brain-Computer Interfaces: Foundational Concepts and Motor Imagery Analysis\\
+\large Academic Texts Analysis}
+\author{Filip Chlad}
+\date{October 15, 2025}
+
+\begin{document}
+
+\maketitle
+
+\section{Analysis of "Decoding brain signals: A comprehensive review of EEG-Based BCI paradigms, signal processing and applications"}
+
+\subsection{[BCI APPROACHES] What is a Brain-Computer Interface?}
+
+Bypassing conventional neuromuscular channels, brain-computer interfaces (BCIs) allow direct communication between the brain and external devices (Yadav \& Maini, 2025, Introduction).
+
+The paper defines BCIs as systems that detect and interpret brain signals, converting them into commands that operate external devices (Yadav \& Maini, 2025, p. 1).
+
+\textbf{Critical distinction:} BCIs work by completely bypassing the body's natural communication pathways (peripheral nerves and muscles), enabling people with severe motor impairments to interact with technology using only their brain activity.
+
+\subsection{[BCI APPROACHES] Why EEG for BCIs?}
+
+The paper explains that numerous neuroimaging techniques exist, including non-invasive ones like electroencephalography (EEG), functional magnetic resonance imaging (fMRI), and near-infrared spectroscopy (NIRS), as well as invasive methods such as electrocorticography (ECoG) and intracortical recordings (Yadav \& Maini, 2025, p. 1).
+
+However, non-invasive techniques, particularly EEG, are the most popular due to their affordability, convenience, and safety (Yadav \& Maini, 2025, p. 1).
+
+\textbf{[INTERESTING FACTS]} EEG is a non-invasive technique that captures brain activity in real time, making it ideally suited for BCI applications (Yadav \& Maini, 2025, Abstract).
+
+\subsection{[PARADIGMS] Understanding BCI Paradigms: The Foundation}
+
+The paper provides crucial insight into what paradigms actually are:
+
+\begin{quote}
+Different paradigms are used by EEG-based BCIs to decode brain activity and convert it into commands that may be carried out. To produce control signals, these paradigms rely on various neurological processes and brainwave patterns. Brain signals can be stimulated by exogenous stimuli or endogenous mental tasks. (Yadav \& Maini, 2025, Section 3)
+\end{quote}
+
+\textbf{Key conceptual framework:} The paper explains that brain activities often occur simultaneously, making it difficult to distinguish any particular type of activity directly. A well-designed paradigm is mainly used during signal-acquisition phases to extract the desired brain activities. The paradigm is like an encoder that excites the brain to induce the targeted brain activities (Yadav \& Maini, 2025, p. 3).
+
+\subsubsection{[PARADIGMS] Classification of Paradigms}
+
+The authors categorize paradigms based on exogenous vs. endogenous components:
+\begin{itemize}
+    \item \textbf{Exogenous (External Stimuli):} Visual (e.g., SSVEP) and Auditory stimuli
+    \item \textbf{Endogenous (Internal Mental Tasks):} Cognitive Tasks and Mental Attention (e.g., MI, P300)
+\end{itemize}
+
+\subsection{[PARADIGMS] [MI CONTEXT] Motor Imagery (MI)}
+
+\subsubsection{What it is}
+
+MI refers to the mental simulation of movement without any actual muscle activation or physical execution (Yadav \& Maini, 2025, Section 3.1).
+
+Users create control signals in the MI paradigm by visualising the movement of body parts, like the tongue, hands, or feet (Yadav \& Maini, 2025, p. 3).
+
+\subsubsection{How it works — Neural mechanism}
+
+Because MI stimulates the same brain regions involved in real movement, especially the sensorimotor cortex, the MI paradigm is based on the brain's capacity to mimic motor motions (Yadav \& Maini, 2025, p. 3).
+
+\subsubsection{[MI CONTEXT] Critical neurophysiological basis}
+
+Event-related desynchronisation (ERD) and event-related synchronisation (ERS) are the terms used to describe the desynchronisation and resynchronisation of brain oscillations in the mu and beta frequency bands caused by the imagination of movement. These modifications can be utilised to differentiate between various imagined actions and to operate external devices. The ERD reduces the power in specific frequency bands (Yadav \& Maini, 2025, p. 3).
+
+\textbf{Frequency bands:} The MI paradigm is based on the mental rehearsal of physical movements without actual execution, often focusing on mu (8–13 Hz) and beta (14–30 Hz) rhythm changes in the sensorimotor cortex during imagined movements (Yadav \& Maini, 2025, Introduction).
+
+\subsubsection{Purpose and applications}
+
+MI-BCIs are commonly used, particularly for motor recovery following spinal cord injury or stroke (Yadav \& Maini, 2025, p. 2).
+
+In neurorehabilitation, MI-BCIs are frequently utilised, especially for stroke and spinal cord injury patients. MI-BCIs are used in neurorehabilitation to encourage motor recovery by using mental practice to activate the brain's motor pathways, frequently in conjunction with input from virtual or robotic settings. MI-BCIs are also utilised to control assistive devices, exoskeletons, and prosthetic limbs, which help people with motor disabilities regain their freedom (Yadav \& Maini, 2025, Section 3.1).
+
+\subsubsection{Advantages and Challenges}
+
+\textbf{Advantages (from Table 1):}
+\begin{itemize}
+    \item \textbf{No External Stimulation Needed:} Suitable for users with sensory impairments
+    \item \textbf{Neuroplasticity:} Promotes neuroplasticity, aiding motor skill recovery
+    \item \textbf{Long-Term Use:} Minimal hardware requirements for rehabilitation programs
+\end{itemize}
+
+\textbf{Challenges (from Table 1):}
+\begin{itemize}
+    \item \textbf{User Training:} Significant training necessary (30–60 minutes typically)
+    \item \textbf{Inter-Subject Variability:} EEG signals vary greatly among individuals, requiring custom calibration
+    \item \textbf{Medium Fatigue Level}
+\end{itemize}
+
+\textbf{Performance Metrics (from Table 7):}
+\begin{itemize}
+    \item Average Accuracy: 75.4 $\pm$ 6.3\%
+    \item Information Transfer Rate (ITR): 8.2 bits/min
+    \item Trial Length: 4–6 seconds
+\end{itemize}
+
+\subsection{[PARADIGMS] Steady-State Visual Evoked Potentials (SSVEP)}
+
+\subsubsection{What it is}
+
+BCIs based on SSVEPs utilise the brain's natural response to repeated visual stimuli presented at specific frequencies. When users focus on a flickering stimulus, the brain generates oscillatory activity at the same frequency or harmonics of the stimulus frequency (Yadav \& Maini, 2025, Section 3.2).
+
+\subsubsection{Neural basis}
+
+This frequency-specific brain activity is primarily produced in the visual cortex within the occipital lobe (Yadav \& Maini, 2025, Section 3.2).
+
+\subsubsection{Purpose and applications}
+
+SSVEP-based BCIs rely on the brain's responses to repeated visual stimuli that flicker at specific frequencies and are highly effective for tasks like item selection on a screen (Yadav \& Maini, 2025, Introduction).
+
+Due to their high ITR and reliability, SSVEP-based BCIs are widely used in applications such as robotic control, VR, spellers, and gaming (Yadav \& Maini, 2025, Section 3.2).
+
+\subsubsection{Advantages and Challenges}
+
+\textbf{Advantages:}
+\begin{itemize}
+    \item \textbf{High ITR:} Among the fastest BCI paradigms
+    \item \textbf{Minimal Training Requirements:} Users can begin using SSVEP systems quickly
+\end{itemize}
+
+\textbf{Challenges:}
+
+However, their dependence on repetitive high-frequency flickering stimuli (typically 6–20 Hz) often results in rapid visual fatigue, distress, and decreased usability in continuous applications (Yadav \& Maini, 2025, Section 3.2.1).
+
+\textbf{Performance Metrics (from Table 7):}
+\begin{itemize}
+    \item Average Accuracy: 91.2 $\pm$ 3.8\%
+    \item ITR: 27.3 bits/min (highest among single paradigms)
+    \item Trial Length: 0.8–1.5 seconds
+    \item Training Time: $<$10 minutes
+    \item Fatigue Level: High
+\end{itemize}
+
+\subsection{[PARADIGMS] P300 Event-Related Potentials}
+
+\subsubsection{What it is}
+
+The foundation of the P300 paradigm lies in detecting a specific ERP known as the P300 wave, which typically appears around 300 ms after a user focuses on an infrequent, target stimulus among more frequent non-target stimuli, as seen in the "oddball" paradigm (Yadav \& Maini, 2025, Section 3.3).
+
+\subsubsection{Neural basis}
+
+The P300 wave is associated with attention and stimulus evaluation and is thought to play a significant role in decision-making processes within the brain. When a user concentrates on a target stimulus, a positive deflection in the EEG signal (the P300 wave) is produced, usually in the brain's frontal and parietal regions (Yadav \& Maini, 2025, Section 3.3).
+
+\subsubsection{Purpose and applications}
+
+P300 is an ERP occurring around 300 ms after an infrequent stimulus, and P300 BCIs are often used in communication systems for individuals with severe motor limitations, such as BCI spellers (Yadav \& Maini, 2025, Introduction).
+
+\textbf{Most common application — The P300 Speller:}
+
+For BCI speller systems, the P300 paradigm has become widely used. The traditional row-column (RC) paradigm uses a 6$\times$6 matrix of characters with random flashes in each row and column to evoke the P300 response when a user focuses on a target character (Yadav \& Maini, 2025, Section 3.3).
+
+For example, P300-based spellers allow individuals who are mute to communicate by selecting letters on a screen using brain signals. These technologies have significantly improved the quality of life for individuals with ALS and similar conditions by providing a communication channel when alternatives are impractical (Yadav \& Maini, 2025, Introduction).
+
+\subsubsection{Advantages and Challenges}
+
+\textbf{Advantages (from Table 4):}
+\begin{itemize}
+    \item \textbf{Minimal Training:} Requires little to no training because it relies on natural cognitive responses
+    \item \textbf{High Accuracy:} Often achieves high accuracy rates in controlled conditions
+    \item \textbf{Wide Applicability:} Can be used by various user types, including those with little motor control
+\end{itemize}
+
+\textbf{Challenges (from Table 4):}
+\begin{itemize}
+    \item \textbf{Fatigue:} Users may feel mentally exhausted when concentrating for extended periods
+    \item \textbf{Dependency on External Inputs:} Requires visual or auditory inputs
+    \item \textbf{Limited Control Options:} Usually runs more slowly than MI or SSVEP paradigms
+\end{itemize}
+
+\textbf{Performance Metrics (from Table 7):}
+\begin{itemize}
+    \item Average Accuracy: 88.6 $\pm$ 4.5\%
+    \item ITR: 20.5 bits/min
+    \item Trial Length: 0.6–1.2 seconds
+    \item Training Time: $<$15 minutes
+    \item Fatigue Level: Low
+\end{itemize}
+
+\subsection{[PARADIGMS] Hybrid BCIs — Combining Paradigms for Enhanced Performance}
+
+\subsubsection{What they are and why they exist}
+
+In order to improve BCI performance and user flexibility, hybrid paradigms are robust systems that integrate at least one EEG-based channel with other physiological or neurological inputs (Yadav \& Maini, 2025, Section 3.5).
+
+\subsubsection{The fundamental principle}
+
+These systems combine EEG with modalities like electromyographic (EMG) or eye tracking, or they integrate various paradigms like P300, SSVEP, and MI. By utilising the advantages of each paradigm, this multi-input approach helps offset individual constraints (Yadav \& Maini, 2025, Section 3.5).
+
+\subsubsection{Purpose}
+
+In cutting-edge applications where reliable and adaptable control is essential (i.e., neuroprosthetics, assistive technology, and adaptive gaming), hybrid BCIs are becoming more important (Yadav \& Maini, 2025, Section 3.5).
+
+Hybrid BCIs combine various neural signal types to compensate for limitations in individual paradigms, hence improving overall performance and user experience (Yadav \& Maini, 2025, Introduction).
+
+\subsubsection{Performance}
+
+\textbf{Performance Metrics (from Table 7):}
+\begin{itemize}
+    \item Average Accuracy: 93.1 $\pm$ 3.1\% (highest of all paradigms)
+    \item ITR: 29.7 bits/min (highest overall)
+    \item Trial Length: 1–2.5 seconds
+    \item Training Time: 20–40 minutes
+    \item Fatigue Level: Medium-High
+\end{itemize}
+
+\textbf{Example implementations:}
+
+The paper cites a study by Allison et al. that created a hybrid BCI combining MI and SSVEP. In this investigation, individuals performed MI tasks while concurrently focusing on flickering SSVEP stimuli to control a system. With an ITR of 20.3 bits/min and an average classification accuracy of 94.4\%, the system showed notable performance improvements over single-paradigm configurations (Yadav \& Maini, 2025, Section 3.5).
+
+\section{[BCI REALITY vs SCI-FI] Current Applications and Real-World Use}
+
+\subsection{Medical and Rehabilitation Applications}
+
+BCIs' applications continue to expand as technology advances. In medicine, BCIs aid patients who have suffered a stroke, spinal cord injury, and neurodegenerative disorders in regaining motor skills. BCIs provide a unique rehabilitation option, which can be integrated with conventional physical therapy, enabling patients to operate robotic limbs or engage in virtual reality exercises through mental imagery (Yadav \& Maini, 2025, Introduction).
+
+\textbf{Specific applications include:}
+
+\begin{enumerate}
+    \item \textbf{Motor System Rehabilitation:}
+    \begin{itemize}
+        \item Neurofeedback training gives users real-time feedback on their brain activity, teaching them how to modify particular brain waves linked to movement intention (Yadav \& Maini, 2025, Section 5.1.1)
+        \item Brain-controlled exoskeletons: robotic exoskeletons that help people with movement problems can be controlled by EEG-based BCIs (Yadav \& Maini, 2025, Section 5.1.1)
+    \end{itemize}
+    
+    \item \textbf{Communication Tools:}
+    \begin{itemize}
+        \item EEG-based BCIs can offer alternate communication techniques to people with significant communication impairments, such as those suffering from ALS or locked-in syndrome (Yadav \& Maini, 2025, Section 5.1.2)
+    \end{itemize}
+    
+    \item \textbf{Assistive Technology:}
+    \begin{itemize}
+        \item A useful tool for those with mobility difficulties, EEG-based BCIs allow users to operate computers and other equipment with their thoughts (Yadav \& Maini, 2025, Section 5.2)
+        \item Smart home control: By integrating EEG-based BCIs with smart home systems, people with impairments can use brain activity to manage their surroundings (Yadav \& Maini, 2025, Section 5.2.2)
+    \end{itemize}
+\end{enumerate}
+
+\subsection{Non-Medical Applications}
+
+EEG-based BCIs are also being explored for non-medical uses, such as gaming and entertainment. By incorporating SSVEP and MI paradigms into video games, players can control game elements using brain activity. BCIs have further been applied in cognitive enhancement through neurofeedback systems that provide real-time feedback on brain activity, aiding individuals in improving attention, memory, and mindfulness (Yadav \& Maini, 2025, Introduction).
+
+\textbf{Future possibilities:}
+
+In the future, EEG-based BCIs could integrate into smart environments, enabling users to control wearable technologies, virtual assistants, and household appliances with their thoughts. The integration of Internet of Things (IoT) devices and virtual reality (VR) systems may revolutionise human-computer interaction (HCI), offering more immersive and intuitive experiences (Yadav \& Maini, 2025, Introduction).
+
+\section{Signal Processing and Feature Extraction Methods}
+
+\subsection{Preprocessing Techniques}
+
+Signal preprocessing is critical for removing noise and artifacts from raw EEG data. The most commonly employed preprocessing techniques include:
+
+\begin{itemize}
+    \item \textbf{Filtering:} Bandpass filtering (typically 8-30 Hz for MI tasks) retains motor-related rhythms while removing irrelevant frequencies. Notch filtering removes power-line interference at 50/60 Hz.
+    \item \textbf{Artifact Removal:} Independent Component Analysis (ICA) and Principal Component Analysis (PCA) help eliminate ocular and electromyographic noise.
+    \item \textbf{Spatial Filtering:} Common Average Reference (CAR) and Laplacian filtering reduce artifacts and highlight localized neural activity.
+    \item \textbf{Normalization:} Z-score normalization ensures features are comparable across different recordings and subjects.
+\end{itemize}
+
+\subsection{Feature Extraction Methods}
+
+Feature extraction transforms preprocessed EEG signals into representative features for classification. The most frequently used methods include:
+
+\subsubsection{Spatial Domain}
+
+\textbf{Common Spatial Patterns (CSP):} CSP is the most widely used spatial filtering technique for MI-BCIs. It finds spatial filters that maximize the variance difference between different mental states (e.g., left vs. right hand imagery). CSP is applied either alone or in combination with other feature extraction techniques in approximately 44\% of MI-BCI studies.
+
+\textbf{Filter Bank CSP (FBCSP):} An extension of CSP that applies CSP to multiple frequency bands, capturing frequency-specific spatial patterns. Used in approximately 11\% of reviewed studies.
+
+\subsubsection{Time Domain}
+
+\begin{itemize}
+    \item \textbf{Statistical Features:} Mean, variance, standard deviation, skewness, kurtosis
+    \item \textbf{Hjorth Parameters:} Activity (signal power), Mobility (mean frequency), Complexity (frequency change rate)
+    \item \textbf{Autoregressive (AR) Coefficients:} Model temporal dependencies in EEG signals
+\end{itemize}
+
+\subsubsection{Frequency Domain}
+
+\begin{itemize}
+    \item \textbf{Power Spectral Density (PSD):} Computed via Fast Fourier Transform (FFT), captures energy distribution across frequency bands
+    \item \textbf{Band Power:} Average power in specific frequency bands (mu: 8-13 Hz, beta: 14-30 Hz)
+\end{itemize}
+
+\subsubsection{Time-Frequency Domain}
+
+\begin{itemize}
+    \item \textbf{Discrete Wavelet Transform (DWT):} Decomposes signals into time-frequency components, effective for non-stationary EEG
+    \item \textbf{Short-Time Fourier Transform (STFT):} Provides time-varying frequency information
+    \item \textbf{Continuous Wavelet Transform (CWT):} Offers multi-resolution analysis of EEG signals
+\end{itemize}
+
+\section{Benchmark Datasets for MI-BCI Research}
+
+\subsection{BCI Competition Datasets}
+
+\textbf{BCI Competition IV Dataset 2a:}
+\begin{itemize}
+    \item 9 subjects, 22 EEG electrodes + 3 EOG
+    \item 4 classes: Left Hand, Right Hand, Feet, Tongue
+    \item Dataset size: 420 MB
+    \item Most frequently used benchmark (appears in 30\% of public dataset studies)
+\end{itemize}
+
+\textbf{BCI Competition IV Dataset 2b:}
+\begin{itemize}
+    \item 9 subjects, 3 EEG electrodes + 3 EOG
+    \item 2 classes: Left Hand, Right Hand
+    \item Dataset size: 216 MB
+    \item Second most common benchmark (appears in 40\% of public dataset studies)
+\end{itemize}
+
+\subsection{Other Important Datasets}
+
+\textbf{PhysioNet Motor Imagery Database:}
+\begin{itemize}
+    \item Provides EEG recordings during left/right hand MI from multiple sessions
+    \item Suitable for testing inter-session generalization
+    \item 64 electrodes, 5 classes (right hand, left hand, both hands, both feet, rest)
+\end{itemize}
+
+\textbf{OpenBMI Dataset:}
+\begin{itemize}
+    \item Extended MI tasks with more subjects (62 channels, 54 subjects)
+    \item 2 classes
+    \item Provides fine-grained control targets
+\end{itemize}
+
+\textbf{High Gamma Dataset (HGD):}
+\begin{itemize}
+    \item Used for evaluating high-frequency brain activity
+    \item Often used alongside BCI Competition datasets for cross-dataset validation
+\end{itemize}
+
+\subsection{Importance of Standardization}
+
+The use of benchmark datasets is fundamental to BCI research advancement. They enable:
+\begin{itemize}
+    \item Reliable performance comparisons across different methods
+    \item Reproducibility of research findings
+    \item Cross-dataset validation to ensure model robustness
+    \item Identification of dataset-specific biases
+\end{itemize}
+
+However, research results from EEG-MI BCI studies cannot be reliably reproduced because there is no standardization of datasets and evaluation metrics. Different datasets have inconsistent data collection and preprocessing protocols, leading to variable performance across studies.
+
+\section{MI Cross-Subject Classification: Advanced Methods and Challenges}
+
+\subsection{The Cross-Subject Challenge}
+
+\textbf{Inter-subject variability} represents one of the most significant challenges in MI-BCI systems. EEG signals vary greatly among individuals due to:
+\begin{itemize}
+    \item Anatomical differences in brain structure
+    \item Variations in skull thickness and electrode placement
+    \item Individual differences in cognitive strategies for MI
+    \item Neuroplasticity and learning effects
+    \item Temporal brain dynamics and brain state changes
+\end{itemize}
+
+This variability necessitates subject-specific calibration in traditional BCI systems, requiring 30-60 minutes of training data per user. Cross-subject classification aims to reduce or eliminate this calibration requirement by developing models that generalize across users.
+
+\noindent\makebox[\linewidth]{\rule{\paperwidth}{0.4pt}}
+
+\textbf{I DON'T REALLY UNDERSTAND THESE SECTIONS YET, JUST PREPARED THEM FOR POSSIBLE USE}
+\subsection{Transfer Learning and Domain Adaptation}
+
+\subsubsection{Transfer Learning Approaches}
+
+Transfer learning has emerged as a powerful strategy for addressing cross-subject variability by leveraging knowledge from previously seen subjects.
+\begin{itemize}
+    \item \textbf{Task-Free Transfer Learning (TFTL):} The TFTL model resolves dataset domain shift problems through adversarial training to match source and target resting-state domains. This approach achieved an average accuracy of 81.02\% across different datasets while requiring no calibration process.
+    \item \textbf{Transfer Data Learning Network (TDLNet):} Specifically designed for cross-subject classification of multiclass upper limb motor imagery EEG. Addresses the challenge of limited training data from new subjects by transferring learned representations.
+    \item \textbf{Cross-Subject Motor Imagery Decoding by Transfer Learning:} Studies have demonstrated that transfer learning of tactile ERD can improve cross-subject MI classification, suggesting that multimodal approaches may enhance generalization.
+\end{itemize}
+
+\subsubsection{Domain Adaptation Methods}
+\begin{itemize}
+    \item \textbf{Dynamic Domain Adaptation:} Addresses the non-stationary nature of EEG signals across sessions and subjects. However, current models like DADLNet show limited scalability with extensive patient populations.
+    \item \textbf{Multi-Subdomain Adaptation Network:} Enables single-source to single-target cross-subject MI classification by aligning data distributions under the same class domain using source domain labeled samples.
+    \item \textbf{Synchronized Self-Training Domain Adaptation (SSTDA):} Achieved classification accuracies of 64.43\% and 80.40\% on BCI-IV IIa and High Gamma datasets respectively. Leverages labeled signals from source domain and applies self-training to unlabeled target domain signals.
+    \item \textbf{Domain Adaptation with Dual Attention (DA-RelationNet):} Enables dual-attention processing through temporal and aggregation attention modules for new subject cases. Accomplished 87.33\% accuracy during fine-tuning operations using restricted target dataset inputs on BCI-IV-2b.
+\end{itemize}
+
+\subsection{Meta-Learning for Rapid Adaptation}
+
+Meta-learning techniques enable models to quickly adapt to new users with minimal parameter updates. These approaches are particularly valuable for:
+\begin{itemize}
+    \item Reducing calibration time for new users
+    \item Enabling few-shot learning from limited target user data
+    \item Maintaining performance across diverse subject populations
+\end{itemize}
+
+The development of customized attention methods for users will enhance model effectiveness in realistic applications. Meta-learning combined with adaptive learning modules has shown promise on both BCI Competition IV-2a and OpenBMI datasets.
+
+\subsection{Riemannian Geometry Approaches}
+
+Riemannian geometry provides a mathematically principled framework for handling the non-Euclidean structure of EEG covariance matrices, making it particularly suitable for cross-subject classification.
+
+\textbf{Riemannian Geometry Networks (RGN):} This approach combines neural networks with Riemannian geometry for processing spatial covariance matrices (SPD matrices). The method avoids time-consuming eigenvalue decomposition and maintains 94\% accuracy across different subjects through EEG signal geometric structural preservation.
+
+\textbf{Multi-Scale Convolution and Riemannian Geometry (MSCARNet):} Uses Riemannian geometry with multi-scale convolutions and sliding windows, achieving 82.66\% subject-dependent accuracy on BCI-IV-2a. Data distribution alignment occurs using Riemannian space invariance properties that help tackle different human subject characteristics.
+
+Riemannian manifold-based methods have established themselves as reliable techniques to address domain shift problems inherent in non-stationary EEG data, enabling more robust feature representation and comparison across subjects or sessions and MI tasks.
+
+\subsection{Deep Learning Architectures for Cross-Subject Classification}
+
+\subsubsection{End-to-End Multi-Task Learning}
+
+\textbf{MIN2Net:} An end-to-end multi-task learning framework for subject-independent motor imagery EEG classification. Integrates multi-scale spatial-temporal feature extraction and demonstrates restricted adaptability to new users (66.31\% accuracy in leave-one-subject-out experiments).
+
+\textbf{Multi-Task Multi-Branch CNN (MT-MBCNN):} Integrates multi-task along with multi-branch approaches to extract complete spatial-temporal-spectral features. However, performed 20\% worse on OpenBMI than BCI-IV-2a, indicating specific dataset biases.
+
+\subsubsection{Attention-Based Mechanisms}
+
+\textbf{Efficient Channel Attention and Temporal Convolutional Network (ETCNet):} Combines efficient channel attention mechanisms with temporal processing to improve cross-subject generalization.
+
+\textbf{Adaptive CNN with Spatio-Temporal Attention (ACNN-STADP):} Employs dynamic pathways and attention mechanisms for robust EEG-based motor imagery classification across subjects.
+
+\subsubsection{Subject-Independent Architectures}
+
+\textbf{Two-Phase Multitask Autoencoder:} Deep learning framework designed specifically for subject-independent EEG motor imagery classification, addressing the challenge of feature representation that generalizes across users.
+
+\textbf{Convolutional Transformer with Adaptation Learning Modules (CT-GAA):} Enhances motor imagery classification generalization through integration of transformer architectures with adaptive components.
+
+\subsection{Challenges and Limitations}
+
+\subsubsection{Performance Gaps}
+
+Current cross-subject models show significant performance degradation compared to subject-specific approaches:
+\begin{itemize}
+    \item Leave-one-subject-out experiments often achieve only 60-70\% accuracy
+    \item Subject-specific models typically achieve 75-85\% accuracy
+    \item Performance varies significantly across different subjects within the same dataset
+\end{itemize}
+
+\subsubsection{Catastrophic Forgetting}
+
+Deep learning models face catastrophic forgetting when they adapt to new users or tasks, reducing their potential to generalize learning. Continual learning strategies are needed as a top research priority.
+
+\subsubsection{Limited Adaptability}
+
+Models like MSTFNet demonstrate restricted adaptability to new users, with accuracy reaching only 66.31\% in leave-one-subject-out experiments. Enhanced model robustness requires:
+\begin{itemize}
+    \item Adaptive filtering algorithms integrated with DL models
+    \item User-oriented fine-tuning methods for neuroplasticity
+    \item Continual learning strategies to maintain acquired information
+\end{itemize}
+
+\subsubsection{Real-World Variations}
+
+Laboratory-trained models often underperform in real-world conditions due to:
+\begin{itemize}
+    \item Motion artifacts and environmental noise
+    \item Individual variability in cognitive strategies
+    \item Changes in user attention and fatigue
+    \item Non-stationary EEG signal properties
+\end{itemize}
+
+\subsection{Automated Pipeline Frameworks}
+
+\subsubsection{MOABB (Mother of All BCI Benchmarks)}
+
+MOABB provides a standardized framework for evaluating BCI algorithms across multiple datasets. It addresses critical needs in BCI research:
+
+\textbf{Key Features:}
+\begin{itemize}
+    \item Standardized data loading and preprocessing pipelines
+    \item Consistent evaluation protocols across datasets
+    \item Support for cross-dataset and cross-subject validation
+    \item Reproducible benchmarking infrastructure
+\end{itemize}
+
+\textbf{Benefits for Cross-Subject Research:}
+\begin{itemize}
+    \item Enables fair comparison of different algorithms
+    \item Facilitates identification of dataset-specific biases
+    \item Provides transparency and comparability through standardized metrics
+    \item Supports comprehensive evaluation across multiple benchmark datasets
+\end{itemize}
+
+\subsubsection{Evaluation Metrics and Standards}
+
+Traditional metrics like accuracy and F1 score are insufficient for comprehensive BCIevaluation. Emerging standards include:
+
+\textbf{Information Transfer Rate (ITR):} Measures the speed and accuracy of information transfer, critical for real-time BCI applications. ITR is measured in bits per minute and accounts for both accuracy and the number of classes.
+
+\textbf{Cross-Dataset Benchmarking:} Evaluating models on multiple independent datasets (e.g., BCI-IV-2a, OpenBMI, PhysioNet) to ensure robustness and identify overfitting to specific datasets.
+
+\textbf{Leave-One-Subject-Out Cross-Validation (LOSO-CV):} The gold standard for evaluating cross-subject generalization, where models are trained on N-1 subjects and tested on the remaining subject, repeated for all subjects.
+
+\textbf{Reproducibility Metrics:} Standardized reporting of preprocessing steps, hyperparameters, and implementation details to enable replication of results.
+
+\subsection{Future Directions in Cross-Subject MI-BCI}
+
+\subsubsection{Zero-Shot and Few-Shot Learning}
+
+Emerging research focuses on zero-shot learning (no calibration data from target user) and few-shot learning (minimal calibration with 1-5 trials per class). These approaches could dramatically reduce or eliminate calibration requirements.
+
+\subsubsection{Federated Learning}
+
+Federated personalized learning enables:
+\begin{itemize}
+    \item Training on distributed datasets while preserving user privacy
+    \item Collaborative model improvement across multiple institutions
+    \item Subject-specific adaptation without sharing raw EEG data
+    \item Reduced calibration demands through collective learning
+\end{itemize}
+
+\subsubsection{Multimodal Integration}
+
+Combining EEG with other modalities shows promise for improving cross-subject performance:
+\begin{itemize}
+    \item \textbf{EEG + fNIRS:} Enhanced spatial resolution and signal fidelity
+    \item \textbf{EEG + EMG:} Hybrid control systems with complementary information
+    \item \textbf{EEG + Eye Tracking:} Additional behavioral markers for intent detection
+\end{itemize}
+
+\subsubsection{Self-Supervised and Contrastive Learning}
+
+Recent advances in self-supervised learning enable models to learn robust representations from unlabeled EEG data:
+\begin{itemize}
+    \item Reduces dependence on large labeled datasets
+    \item Learns task-agnostic features that transfer across subjects
+    \item Negative-sample-free contrastive learning specifically designed for EEG-based motor imagery classification
+\end{itemize}
+
+\subsubsection{Neuroplasticity-Aware Models}
+
+Neuroplasticity—the brain's ability to reorganize neural pathways—introduces significant cross-subject and cross-session variability. Future models must account for:
+\begin{itemize}
+    \item Individual differences in learning rates and neural adaptation
+    \item Temporal changes in brain activity patterns during training
+    \item Long-term plasticity effects in rehabilitation applications
+    \item Distribution adaptive feedback training methods to improve human motor imagery ability
+\end{itemize}
+
+\subsection{Practical Considerations for Implementation}
+
+\subsubsection{Computational Efficiency}
+
+Real-time BCI applications require:
+\begin{itemize}
+    \item Low-latency signal processing ($<$200 ms)
+    \item Efficient feature extraction and classification
+    \item Edge-AI deployment for on-device inference
+    \item Neuromorphic computing for energy-efficient processing
+\end{itemize}
+
+\subsubsection{User Experience}
+
+Practical cross-subject BCIs must address:
+\begin{itemize}
+    \item Minimal setup time and calibration
+    \item Robust performance across different usage contexts
+    \item Adaptive interfaces that adjust to user fatigue
+    \item Clear feedback mechanisms for user engagement
+\end{itemize}
+
+\subsubsection{Standardization Initiatives}
+
+The BCI research community is moving toward:
+\begin{itemize}
+    \item PRISMA-BCI reporting frameworks for systematic reviews
+    \item FAIR data principles (Findable, Accessible, Interoperable, Reusable)
+    \item Open-source implementations and code sharing
+    \item Standardized preprocessing pipelines through frameworks like MOABB
+    \item Cross-dataset validation protocols
+\end{itemize}
+
+\section{Critical Research Gaps and Opportunities}
+
+\subsection{Interpretability and Explainability}
+
+Deep learning models for MI classification are often treated as "black boxes," limiting clinical adoption and user trust. Future research should focus on:
+\begin{itemize}
+    \item Explainable AI techniques for EEG-based BCIs
+    \item Visualization of learned spatial and temporal features
+    \item Identification of discriminative brain regions and frequency bands
+    \item Clinical validation of model predictions
+\end{itemize}
+
+\subsection{Dataset Diversity and Representation}
+
+Current benchmark datasets have limitations:
+\begin{itemize}
+    \item Limited representation of clinical populations (stroke, SCI patients)
+    \item Predominantly healthy, young participants
+    \item Controlled laboratory settings that don't reflect real-world use
+    \item Insufficient long-term longitudinal data
+\end{itemize}
+
+Addressing these gaps requires:
+\begin{itemize}
+    \item Development of diverse, representative datasets
+    \item Real-world data collection from clinical settings
+    \item Longitudinal studies tracking neuroplasticity effects
+    \item Multi-center collaborative data collection efforts
+\end{itemize}
+
+\subsection{Artifact Handling in Real-World Conditions}
+
+Laboratory-trained models often fail in real-world applications due to artifacts. Advanced solutions needed:
+\begin{itemize}
+    \item Deep learning-based denoising autoencoders
+    \item Adaptive artifact rejection for dynamic tasks
+    \item Motion-artifact-resistant feature extraction
+    \item Real-time artifact detection and correction
+\end{itemize}
+
+\subsection{Personalization vs. Generalization Trade-off}
+
+Finding the optimal balance between:
+\begin{itemize}
+    \item Generic models that work across all users (low calibration, potentially lower accuracy)
+    \item Personalized models optimized for individuals (high calibration, higher accuracy)
+    \item Hybrid approaches that combine both strategies
+\end{itemize}
+
+\section{Conclusion}
+
+This analysis has provided a comprehensive overview of fundamental BCI concepts, with particular emphasis on motor imagery paradigms and the critical challenge of cross-subject classification. Key takeaways include:
+
+\begin{enumerate}
+    \item \textbf{BCI Paradigms:} Different paradigms (MI, SSVEP, P300, Hybrid) offer distinct advantages and are suited to different applications. MI remains particularly important for rehabilitation due to its ability to promote neuroplasticity.
+    
+    \item \textbf{MI Characteristics:} Motor imagery operates through ERD/ERS in mu (8-13 Hz) and beta (14-30 Hz) bands, achieving average accuracy of 75.4\% with moderate training requirements (30-60 minutes) but significant inter-subject variability.
+    
+    \item \textbf{Signal Processing:} Proper preprocessing (filtering, artifact removal) and feature extraction (CSP, frequency band power, time-frequency analysis) are critical for successful MI classification.
+    
+    \item \textbf{Cross-Subject Challenge:} Inter-subject variability represents the primary obstacle to practical BCI deployment. Current solutions include transfer learning, domain adaptation, meta-learning, and Riemannian geometry approaches, but significant performance gaps remain (60-70\% cross-subject vs. 75-85\% subject-specific accuracy).
+    
+    \item \textbf{Advanced Methods:} Transfer learning, domain adaptation, Riemannian geometry, and attention-based deep learning architectures show promise for improving cross-subject generalization, though challenges like catastrophic forgetting and limited real-world robustness persist.
+    
+    \item \textbf{Standardization:} Frameworks like MOABB and standardized benchmark datasets (BCI Competition IV-2a/2b, PhysioNet, OpenBMI) are essential for reproducible research and fair algorithm comparison.
+    
+    \item \textbf{Future Directions:} Zero-shot/few-shot learning, federated learning, multimodal integration, self-supervised learning, and neuroplasticity-aware models represent promising avenues for advancing cross-subject MI-BCI systems.
+\end{enumerate}
+
+The field of MI-BCIs is rapidly evolving, with deep learning and automated pipeline approaches offering new possibilities for creating truly subject-independent systems. However, bridging the gap between laboratory performance and real-world deployment remains a critical challenge requiring continued innovation in algorithms, hardware, standardization, and clinical validation.
+
+\section*{Acknowledgment}
+
+This analysis was created as part of a bachelor's thesis project focusing on motor imagery cross-subject classification using MOABB with automated pipelines and advanced methods. The foundational work is based on "Decoding brain signals: A comprehensive review of EEG-Based BCI paradigms, signal processing and applications" by Yadav \& Maini (2025), supplemented with recent research on deep learning approaches and cross-subject generalization strategies.
+
+\end{document}
