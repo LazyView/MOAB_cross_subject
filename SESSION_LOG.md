@@ -112,3 +112,17 @@
 **Next steps:**
 - Add per-subject bar chart visualization
 - Consider SVM hyperparameter tuning or drop it from thesis
+
+## Session 2026-03-29 (continued 2)
+
+**Completed:**
+- Configured LaTeX Workshop in VS Code: pdflatex → biber → pdflatex×2 recipe, disabled latexmk clean
+- Installed MiKTeX + GTAmerica fonts via MiKTeX Console
+- Created `LaTeX_thesis/sablona/thesis.tex` — FASThesis template with correct metadata (english, bc, kiv)
+- Created `LaTeX_thesis/sablona/thesis.bib` — empty bibliography file
+- Thesis compiles successfully with proper fonts and layout
+
+**Next steps:**
+- Start writing thesis content — Theoretical Background chapter first (material.tex has extracted notes)
+- Add per-subject bar chart visualization
+- Consider SVM hyperparameter tuning or drop from thesis
