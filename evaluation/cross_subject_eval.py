@@ -2,6 +2,9 @@
 Cross-subject evaluation using MOABB CrossSubjectEvaluation.
 Pipelines: CSP+LDA, CSP+SVM, CSP+LR
 Run from project root: python evaluation/cross_subject_eval.py
+
+Results are saved to results/cross_subject_eval.csv
+Set EXCLUDE_OUTLIERS = True to exclude atypical subjects (7, 8).
 """
 
 import sys
@@ -11,6 +14,9 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 import mne
 import yaml
 import pandas as pd
+
+RESULTS_DIR = Path("results")
+RESULTS_DIR.mkdir(exist_ok=True)
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn.linear_model import LogisticRegression
 from sklearn.svm import SVC
@@ -23,6 +29,10 @@ from moabb.paradigms import MotorImagery
 from dataset.custom_dataset import MotorImageryDataset
 
 mne.set_log_level('WARNING')
+
+# --- Options ---
+EXCLUDE_OUTLIERS = True
+OUTLIER_SUBJECTS = [7, 8]  # atypical ERD/ERS lateralization, confirmed via diagnostics
 
 # --- Load config ---
 with open("config/dataset_config.yaml", 'r') as f:
@@ -63,6 +73,11 @@ pipelines = {
     ]),
 }
 
+# --- Optionally exclude outlier subjects ---
+if EXCLUDE_OUTLIERS:
+    dataset.subject_list = [s for s in dataset.subject_list if s not in OUTLIER_SUBJECTS]
+    print(f"Excluded subjects: {OUTLIER_SUBJECTS} → {len(dataset.subject_list)} subjects remaining")
+
 # --- Run cross-subject evaluation (leave-one-subject-out) ---
 evaluation = CrossSubjectEvaluation(
     paradigm=paradigm,
@@ -83,3 +98,9 @@ for pipeline_name in pipelines:
     print(f"  {pipeline_name:<10} {scores.mean():.3f} ± {scores.std():.3f}")
 
 print(f"\nChance level  : 0.500")
+
+# --- Save results ---
+suffix = "_excluded_outliers" if EXCLUDE_OUTLIERS else ""
+out_path = RESULTS_DIR / f"cross_subject_eval{suffix}.csv"
+results.to_csv(out_path, index=False)
+print(f"\nResults saved → {out_path}")

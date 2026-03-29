@@ -78,3 +78,37 @@
 - CSP+LDA and CSP+LR are identical — LR adds nothing, LDA is preferred
 - CSP+SVM inconsistent: better for subjects 7/8, much worse for 3/15 — needs tuning before thesis use
 - Artifact rejection not integrated into MOABB eval loop (paradigm doesn't support `reject` param in this version)
+
+## Session 2026-03-29
+
+**Completed:**
+- Created `docs/evaluation_approaches.md` documenting LOSO, CSP, LDA, LR, SVM — rationale, pros/cons, per-pipeline results
+
+**Next steps:**
+- Save results to CSV for thesis reporting
+- Investigate below-chance subjects (7: 0.365, 8: 0.174)
+- Add per-subject bar chart visualization
+- SVM hyperparameter tuning (C, gamma) if included in thesis
+
+**Issues/Notes:**
+- No code changes this session
+
+## Session 2026-03-29 (continued)
+
+**Completed:**
+- Created `docs/evaluation_approaches.md`
+- Created `diagnostics/inspect_below_chance.py` — visual inspection script for suspect subjects (headless, saves PNGs to `diagnostics/plots/<composite_id>/`)
+- Fixed bugs in diagnostic: `spectrum.get_data(units=...)` not supported → manual scaling; `ndarray.ptp` removed in NumPy 2.0 → `np.ptp()`; `return_epochs=True` baseline crash → use numpy output
+- Confirmed MOABB returns data in µV (not V) from X range printout
+- Added CSV export to `evaluation/cross_subject_eval.py` → saves to `results/cross_subject_eval.csv`
+- Re-ran full evaluation to get per-subject scores
+
+**Findings — below-chance subjects:**
+- Subject 7 (03042023_4, score 0.365) and Subject 8 (03042023_5, score 0.174)
+- Both have: balanced classes (21/21, 20/21), normal EEG amplitude (±70/±50 µV), clean PSDs, no artifacts
+- Subjects 1–3 from the same recording session (03042023) score 0.893, 0.963, 0.978 → session-level issue ruled out
+- Root cause: individual atypical ERD/ERS lateralization (BCI illiteracy), not data or code issues
+
+**Next steps:**
+- Add per-subject bar chart visualization
+- Consider SVM hyperparameter tuning or drop it from thesis
