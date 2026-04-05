@@ -181,10 +181,10 @@ For this thesis, MOABB's \texttt{CrossSubjectEvaluation} class implements the LO
 % =============================================================================
 
 % -----------------------------------------------------------------------------
-\section{Dataset Description}
+\section{Custom Motor Imagery Dataset}
 % -----------------------------------------------------------------------------
 
-The dataset used in this thesis consists of EEG recordings collected from 29 subjects performing motor imagery tasks. The recordings span multiple sessions conducted between 2020 and 2023 and originate from two distinct experimental protocols, referred to here as the Mochura and Saleh formats, reflecting differences in the recording setup and file naming conventions.
+The custom dataset used in this thesis consists of EEG recordings collected from 29 subjects performing motor imagery tasks. The recordings span multiple sessions conducted between 2020 and 2023 and originate from two distinct experimental protocols, referred to here as the Mochura and Saleh formats, reflecting differences in the recording setup and file naming conventions.
 
 \subsection{Recording Equipment and Format}
 
@@ -213,10 +213,51 @@ Subject IDs are only unique within a single recording date, not globally. To ens
 The thesis addresses binary motor imagery classification: left-hand MI versus right-hand MI. The class of each epoch is determined solely by the filename (\texttt{lh} or \texttt{rh}), not by event codes, since both hands share the same event marker values within their respective files. Rest epochs are not used in the final classification pipeline.
 
 % -----------------------------------------------------------------------------
+\section{BCI Competition IV Dataset 2a}
+% -----------------------------------------------------------------------------
+
+The BCI Competition IV Dataset~2a~\cite{brunner2008bci} is a widely used public benchmark for motor imagery classification, made available through the fourth BCI Competition and accessible via the MOABB framework as \texttt{BNCI2014\_001}. It is used in this thesis as a source domain for transfer learning and as an independent evaluation benchmark.
+
+\subsection{Recording Setup}
+
+EEG was recorded from 9 healthy subjects using 22 electrodes placed according to the international 10--20 system, supplemented by 3 monopolar EOG channels for artefact monitoring. Signals were sampled at 250\,Hz and band-pass filtered between 0.5 and 100\,Hz online during acquisition.
+
+\subsection{Experimental Paradigm}
+
+The paradigm is cue-based. Each trial begins with a 2-second fixation period, followed by an auditory warning tone at $t = 0$\,s. At $t = 2$\,s, a directional arrow cue indicates the class to be imagined. Subjects perform motor imagery for 4 seconds (until $t = 6$\,s), after which a short rest period follows before the next trial. The dataset contains four motor imagery classes: left hand, right hand, feet, and tongue. Each subject completed two recording sessions on separate days. Each session consists of 6 runs of 48 trials, yielding 288 trials per session and 576 trials per subject across both sessions (144 trials per class per subject).
+
+\subsection{Usage in this Thesis}
+
+Only the left-hand and right-hand classes are used, matching the binary classification task of the custom dataset. To align the two datasets for transfer learning, channels are restricted to C3, C4, and Cz and recordings are resampled from 250\,Hz to 500\,Hz. The epoch window is set to $+0.5$\,s to $+3.5$\,s relative to cue onset, capturing the 3-second active MI period and matching the epoch duration of the custom dataset.
+
+Table~\ref{tab:datasets} summarises the key parameters of both datasets as used in this thesis.
+
+\begin{table}[ht]
+    \centering
+    \caption{Dataset comparison (parameters as used in experiments).}
+    \label{tab:datasets}
+    \begin{tabular}{lll}
+        \hline
+        \textbf{Parameter} & \textbf{Custom dataset} & \textbf{BCI IV-2a} \\
+        \hline
+        Subjects              & 29 (27 after exclusion) & 9 \\
+        Channels used         & C3, C4, Cz              & C3, C4, Cz \\
+        Sampling rate         & 500\,Hz                 & 250\,Hz $\rightarrow$ 500\,Hz \\
+        Epoch window          & $-3.5$ to $-0.5$\,s    & $+0.5$ to $+3.5$\,s \\
+        Epoch duration        & 3\,s (1501 samples)     & 3\,s (1502 samples$^*$) \\
+        Classes               & left hand, right hand   & left hand, right hand \\
+        Trials per class      & ${\sim}54$ per subject$^\dagger$  & 144 per subject \\
+        \hline
+        \multicolumn{3}{l}{\footnotesize $^*$One sample trimmed to 1501 for cross-dataset experiments.} \\
+        \multicolumn{3}{l}{\footnotesize $^\dagger$Slight class imbalance: 51.5 left-hand vs.\ 56.0 right-hand trials per subject on average.}
+    \end{tabular}
+\end{table}
+
+% -----------------------------------------------------------------------------
 \section{Preprocessing Pipeline}
 % -----------------------------------------------------------------------------
 
-The preprocessing pipeline is applied identically to all recordings before epoch extraction. All steps are implemented within a custom MOABB dataset class and executed on loading. The pipeline parameters are summarised in Table~\ref{tab:preprocessing}.
+The same preprocessing pipeline is applied to both datasets before epoch extraction. For the custom dataset, all steps are implemented within a custom MOABB dataset class. For BCI Competition IV-2a, channel selection and resampling are handled by the MOABB paradigm. The pipeline parameters are summarised in Table~\ref{tab:preprocessing}.
 
 \begin{table}[ht]
     \centering
@@ -229,7 +270,8 @@ The preprocessing pipeline is applied identically to all recordings before epoch
         Channel selection   & C3, C4, Cz \\
         Target sampling rate & 500\,Hz \\
         Bandpass filter      & 8--30\,Hz \\
-        Epoch window         & $-3.5$\,s to $+0.5$\,s relative to movement onset \\
+        Epoch window (CSP)   & $-3.5$\,s to $+0.5$\,s relative to movement onset \\
+        Epoch window (DL/TL) & $-3.5$\,s to $-0.5$\,s relative to movement onset \\
         Baseline correction  & $-3.5$\,s to $-3.0$\,s \\
         \hline
     \end{tabular}
@@ -251,7 +293,7 @@ A bandpass filter with a passband of 8--30\,Hz is applied to the continuous sign
 
 Epochs are extracted in a window of $-3.5$\,s to $+0.5$\,s relative to each movement onset marker. The pre-stimulus interval from $-3.5$\,s to $-3.0$\,s serves as the baseline: its mean is subtracted from the entire epoch for each channel, removing residual slow voltage offsets and making epoch amplitudes comparable across trials and subjects.
 
-Each recording contributes approximately 20 epochs per class per run. Across all 29 subjects, the dataset yields a total of approximately 840 epochs per class.
+Each recording contributes approximately 20 epochs per class per run. Across 27 subjects (after excluding two non-responders), the dataset yields a total of approximately 1391 left-hand and 1511 right-hand epochs.
 
 \subsection{MOABB Integration}
 
@@ -283,7 +325,53 @@ The preprocessing pipeline is encapsulated in a custom subclass of MOABB's \text
 \chapter{Discussion}
 % =============================================================================
 
-\blindtext
+% -----------------------------------------------------------------------------
+\section{Interpretation of Results}
+% -----------------------------------------------------------------------------
+
+The cross-subject LOSO evaluation reveals a clear ordering among the tested approaches. CSP with LDA achieved a mean accuracy of 70.3\,\% across 27 subjects, while EEGNet in all three transfer conditions remained near the chance level of 50\,\%. This gap reflects fundamental differences between the two method families in the low-channel, small-dataset regime of this thesis.
+
+CSP is a domain-specific algorithm that explicitly maximises the variance ratio between classes by learning spatial filters tuned to the lateralised ERD/ERS structure of motor imagery. Given only three electrodes over the sensorimotor cortex, CSP extracts the most informative projections from the available spatial information. LDA then classifies four log-variance features — a task that is well-conditioned even with limited training data. EEGNet, by contrast, learns convolutional features from raw epoch data. Although the network is compact by deep learning standards, it still requires sufficient data and channel diversity to learn subject-invariant representations~\cite{lawhern2018eegnet}. With three channels and approximately 54 trials per class per subject, the model cannot overcome high inter-subject variability in sensorimotor oscillations.
+
+The transfer learning experiment shows that pretraining on BCI IV-2a does not improve mean accuracy (0.519 direct transfer, 0.514 fine-tuned versus 0.510 custom-only), but reduces the standard deviation from 0.094 to 0.068. This suggests that the pretrained representations capture some cross-dataset structure that stabilises predictions, even though the absolute level remains near chance. Per-subject heterogeneity is high: for some subjects direct transfer nearly doubles accuracy over chance, while for others it degrades performance. This is consistent with the known challenge of inter-subject variability in motor imagery, where a fixed cross-subject model cannot consistently generalise to all users~\cite{lotte2018review}.
+
+% -----------------------------------------------------------------------------
+\section{Limitations of the Implemented Pipeline}
+% -----------------------------------------------------------------------------
+
+The pipeline operates under several constraints that limit achievable accuracy.
+
+\textbf{Channel restriction.} Limiting input to three electrodes is motivated by the spatial specificity of MI-related ERD/ERS, but it also prevents deep learning models from exploiting broader spatial patterns. EEGNet and similar architectures were benchmarked on full 64-channel recordings; with three channels their spatial filtering capacity is reduced to the same information available to CSP, removing the representational advantage of deep networks.
+
+\textbf{Epoch alignment.} The custom dataset anchors epochs to force onset (MI precedes the marker), while BCI IV-2a uses a visual cue (MI follows the marker). The chosen epoch windows align the active MI periods as closely as possible, but differences in cognitive preparation between cue-based and detection-based paradigms introduce a cross-dataset domain shift that pretraining cannot fully compensate.
+
+\textbf{Fine-tuning configuration.} A single configuration (100 epochs, lr $= 10^{-5}$) was evaluated. Layer-wise learning rate schedules, partial layer freezing, or broader hyperparameter search could improve the fine-tuned condition. However, the small size of the custom dataset limits adaptation without overfitting.
+
+% -----------------------------------------------------------------------------
+\section{Practical Limitations of BCI Systems}
+% -----------------------------------------------------------------------------
+
+Beyond the scope of this thesis, motor imagery BCIs face a set of challenges that affect their deployment in real clinical and daily-use environments.
+
+\subsection{Signal Artifacts and Noise}
+
+EEG recordings are susceptible to several categories of contamination. \textbf{Electromyographic (EMG) artefacts} arise from facial and neck muscle contractions and produce broadband high-frequency noise that can overwhelm weak cortical signals. \textbf{Electrooculographic (EOG) artefacts} caused by eye movements and blinks introduce large-amplitude deflections that spread across frontal electrodes and propagate to motor cortex recordings via volume conduction. \textbf{Power-line noise} at 50\,Hz couples into recordings through impedance mismatches at the electrode-skin interface. \textbf{Electrode drift} refers to slow DC shifts caused by sweat accumulation or changes in skin impedance during a session, which can destabilise baseline correction and classification.
+
+Standard mitigation strategies include bandpass filtering to suppress out-of-band noise (as applied in this thesis), independent component analysis (ICA) to separate artefact components from neural sources, and automated artefact rejection based on peak-to-peak amplitude thresholds~\cite{yadav2025decoding}. For clinical BCI deployment, online artefact detection is essential because the user cannot be asked to remain still or re-record contaminated trials.
+
+\subsection{Inter-Subject Variability and BCI Illiteracy}
+
+Inter-subject variability is the primary bottleneck for cross-subject MI classification. Factors including skull thickness, cortical folding, individual differences in motor cortex organisation, and variation in imagery strategy produce ERD/ERS patterns that differ substantially between users under identical task conditions~\cite{yadav2025decoding}. In this thesis, individual LOSO accuracy with CSP+LDA ranged from 0.324 to 0.978 across 27 subjects, illustrating the extent of this variability.
+
+A subset of users show little or no detectable ERD/ERS modulation during motor imagery. These non-responders — sometimes termed \textit{BCI-illiterate} — cannot achieve reliable control with standard MI paradigms regardless of classifier choice~\cite{lotte2018review}. In this thesis, two subjects were excluded after diagnostics confirmed atypical lateralisation patterns rather than recording or pipeline errors. Addressing non-response remains an open problem; proposed approaches include extended neurofeedback training, alternative paradigms such as SSVEP, and personalised adaptive models.
+
+\subsection{Non-Stationarity}
+
+EEG signals are non-stationary: the statistical properties of the signal change over time within a session (due to fatigue, attention lapses, and electrode drift) and between sessions (due to day-to-day variation in mental state and electrode re-placement). A classifier calibrated in one session may require recalibration in subsequent sessions, imposing a per-session setup cost that limits practical usability. Adaptive algorithms that update the model incrementally during use without requiring explicit recalibration are an active area of research~\cite{lotte2018review}.
+
+\subsection{Practical Deployment Constraints}
+
+In clinical neurorehabilitation settings, several additional constraints apply. Electrode preparation using conductive gel to achieve low impedance can take 30--60 minutes and requires trained personnel, making daily use impractical for many patients. Dry electrode systems reduce preparation time but typically exhibit higher noise levels. Long-term wear causes scalp irritation. Finally, the cognitive demand of motor imagery varies with user fatigue and motivation, introducing session-to-session variability that is difficult to model statistically and compounds the non-stationarity problem described above.
 
 % =============================================================================
 \chapter{Conclusion}

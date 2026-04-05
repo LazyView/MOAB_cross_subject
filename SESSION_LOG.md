@@ -126,3 +126,30 @@
 - Start writing thesis content — Theoretical Background chapter first (material.tex has extracted notes)
 - Add per-subject bar chart visualization
 - Consider SVM hyperparameter tuning or drop from thesis
+
+## Session 2026-04-05
+
+**Completed:**
+- Decided on DL extension scope: EEGNet (braindecode), BCI IV-2a as second dataset, transfer learning Variant B (pretrain + fine-tune). Decisions recorded in `docs/design_decisions.md`.
+- Epoch alignment decision: custom dataset uses -3.5 to -0.5 s (active MI before onset); BCI IV-2a uses +0.5 to +3.5 s (active MI after cue) — both 3 s × 500 Hz = 1501 samples.
+- Added `dl` section to `config/dataset_config.yaml` (tmin, tmax, n_times, max_epochs, lr, batch_size).
+- Created `evaluation/dl_cross_subject_eval.py` — EEGNet LOSO eval via braindecode + MOABB.
+- Recreated venv (original path was broken after folder rename); set up `venv_linux` in WSL with CUDA torch + braindecode.
+- Fixed braindecode API changes: `EEGNetv4` → `EEGNet`, `n_classes` → `n_outputs`, `input_window_samples` → `n_times`.
+- Task 1 result: EEGNet 0.510 ± 0.094 on custom dataset (27 subjects, LOSO) vs CSP+LDA baseline 0.703.
+- Created `diagnostics/dataset_analysis.py` — prints stats for both datasets.
+- Task 2: confirmed actual trial counts — custom ~54/class/subject (slight imbalance: 51.5 lh vs 56.0 rh), BCI IV-2a 144/class/subject.
+- BCI IV-2a returns 1502 samples after resampling (751 × 2); custom returns 1501. Fix: trim to 1501 in transfer learning pipeline. Added `n_times: 1501` to config.
+- Thesis additions: `\section{BCI Competition IV Dataset 2a}` with paradigm description and comparison table (corrected numbers); updated preprocessing section intro; added `brunner2008bci` and `lawhern2018eegnet` to `thesis.bib`.
+
+**Next steps:**
+- Task 3: transfer learning — pretrain EEGNet on BCI IV-2a, fine-tune on custom dataset
+  - Variant A (direct transfer, no fine-tune) as intermediate baseline
+  - Variant B (pretrain + fine-tune) as main result
+  - Compare: custom-only (0.510) vs direct transfer vs fine-tuned
+- Task 4: BCI limitations subsection in Discussion chapter
+
+**Issues/Notes:**
+- EEGNet underperforms CSP+LDA on custom dataset alone (0.510 vs 0.703) — expected given small dataset + 3 channels; motivates transfer learning
+- BCI IV-2a 1-sample mismatch (1502 vs 1501) requires trimming in transfer learning pipeline
+- WSL venv is `venv_linux`; Windows venv is `venv` (both exist, use WSL for running)

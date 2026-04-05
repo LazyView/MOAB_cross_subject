@@ -37,3 +37,17 @@ classes:
 # Evaluation parameters
 evaluation:
   csp_components: 4  # Number of CSP spatial filters
+
+# Deep learning parameters (EEGNet, braindecode)
+dl:
+  # Active MI epoch window (3 s, aligned with BCI IV-2a for transfer learning)
+  tmin: -3.5  # seconds relative to movement onset
+  tmax: -0.5  # seconds relative to movement onset
+  # Training hyperparameters
+  # Canonical sample count for both datasets (BCI IV-2a resampled produces 1502 → trimmed)
+  n_times: 1501
+  max_epochs: 300
+  lr: 0.0001
+  batch_size: 64
+  fine_tune_epochs: 100   # fewer epochs for adaptation
+  fine_tune_lr: 0.00001   # 10× lower LR than pretraining
