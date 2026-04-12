@@ -169,6 +169,32 @@ Cross-subject evaluation aims to assess how well a model generalises to a previo
 LOSO directly answers the question relevant to calibration-free BCI deployment: \textit{can a model trained on a population of users decode motor imagery for a new, unseen user without any calibration data?} It is a pessimistic estimate — in practice, even a small number of calibration trials from the new user would improve accuracy — but it represents the most realistic and stringent evaluation scenario.
 
 % -----------------------------------------------------------------------------
+\section{Practical Limitations of BCI Systems}
+% -----------------------------------------------------------------------------
+
+Motor imagery BCIs face a set of fundamental challenges that affect both data quality and cross-subject generalisation. This thesis addresses several of these challenges directly: artefact contamination is mitigated through bandpass filtering and amplitude-based epoch rejection; inter-subject variability is the central problem targeted by the cross-subject evaluation and transfer learning investigation described in subsequent chapters.
+
+\subsection{Signal Artifacts and Noise}
+
+EEG recordings are susceptible to several categories of contamination. \textbf{Electromyographic (EMG) artefacts} arise from facial and neck muscle contractions and produce broadband high-frequency noise that can overwhelm weak cortical signals. \textbf{Electrooculographic (EOG) artefacts} caused by eye movements and blinks introduce large-amplitude deflections that spread across frontal electrodes and propagate to motor cortex recordings via volume conduction. \textbf{Power-line noise} at 50\,Hz couples into recordings through impedance mismatches at the electrode-skin interface. \textbf{Electrode drift} refers to slow DC shifts caused by sweat accumulation or changes in skin impedance during a session, which can destabilise baseline correction and classification.
+
+Standard mitigation strategies include bandpass filtering to suppress out-of-band noise, independent component analysis (ICA) to separate artefact components from neural sources, and automated artefact rejection based on peak-to-peak amplitude thresholds~\cite{yadav2025decoding}. In this thesis, bandpass filtering (8--30\,Hz) and peak-to-peak amplitude rejection (100\,$\mu$V threshold) are applied as the primary artefact mitigation strategy.
+
+\subsection{Inter-Subject Variability and BCI Illiteracy}
+
+Inter-subject variability is the primary bottleneck for cross-subject MI classification. Factors including skull thickness, cortical folding, individual differences in motor cortex organisation, and variation in imagery strategy produce ERD/ERS patterns that differ substantially between users under identical task conditions~\cite{yadav2025decoding}. In this thesis, individual LOSO accuracy with CSP+LDA ranged from 0.324 to 0.978 across 27 subjects, illustrating the extent of this variability.
+
+A subset of users show little or no detectable ERD/ERS modulation during motor imagery. These non-responders — sometimes termed \textit{BCI-illiterate} — cannot achieve reliable control with standard MI paradigms regardless of classifier choice~\cite{lotte2018review}. In this thesis, two subjects were excluded after diagnostics confirmed atypical lateralisation patterns rather than recording or pipeline errors. Addressing inter-subject variability and non-response is the central problem this thesis targets through LOSO cross-subject evaluation and transfer learning from a larger benchmark dataset.
+
+\subsection{Non-Stationarity}
+
+EEG signals are non-stationary: the statistical properties of the signal change over time within a session (due to fatigue, attention lapses, and electrode drift) and between sessions (due to day-to-day variation in mental state and electrode re-placement). A classifier calibrated in one session may require recalibration in subsequent sessions, imposing a per-session setup cost that limits practical usability. Adaptive algorithms that update the model incrementally during use without requiring explicit recalibration are an active area of research~\cite{lotte2018review}.
+
+\subsection{Practical Deployment Constraints}
+
+In clinical neurorehabilitation settings, several additional constraints apply. Electrode preparation using conductive gel to achieve low impedance can take 30--60 minutes and requires trained personnel, making daily use impractical for many patients. Dry electrode systems reduce preparation time but typically exhibit higher noise levels. Long-term wear causes scalp irritation. Finally, the cognitive demand of motor imagery varies with user fatigue and motivation, introducing session-to-session variability that is difficult to model statistically and compounds the non-stationarity problem described above.
+
+% -----------------------------------------------------------------------------
 \section{MOABB Framework}
 % -----------------------------------------------------------------------------
 
@@ -346,32 +372,6 @@ The pipeline operates under several constraints that limit achievable accuracy.
 \textbf{Epoch alignment.} The custom dataset anchors epochs to force onset (MI precedes the marker), while BCI IV-2a uses a visual cue (MI follows the marker). The chosen epoch windows align the active MI periods as closely as possible, but differences in cognitive preparation between cue-based and detection-based paradigms introduce a cross-dataset domain shift that pretraining cannot fully compensate.
 
 \textbf{Fine-tuning configuration.} A single configuration (100 epochs, lr $= 10^{-5}$) was evaluated. Layer-wise learning rate schedules, partial layer freezing, or broader hyperparameter search could improve the fine-tuned condition. However, the small size of the custom dataset limits adaptation without overfitting.
-
-% -----------------------------------------------------------------------------
-\section{Practical Limitations of BCI Systems}
-% -----------------------------------------------------------------------------
-
-Beyond the scope of this thesis, motor imagery BCIs face a set of challenges that affect their deployment in real clinical and daily-use environments.
-
-\subsection{Signal Artifacts and Noise}
-
-EEG recordings are susceptible to several categories of contamination. \textbf{Electromyographic (EMG) artefacts} arise from facial and neck muscle contractions and produce broadband high-frequency noise that can overwhelm weak cortical signals. \textbf{Electrooculographic (EOG) artefacts} caused by eye movements and blinks introduce large-amplitude deflections that spread across frontal electrodes and propagate to motor cortex recordings via volume conduction. \textbf{Power-line noise} at 50\,Hz couples into recordings through impedance mismatches at the electrode-skin interface. \textbf{Electrode drift} refers to slow DC shifts caused by sweat accumulation or changes in skin impedance during a session, which can destabilise baseline correction and classification.
-
-Standard mitigation strategies include bandpass filtering to suppress out-of-band noise (as applied in this thesis), independent component analysis (ICA) to separate artefact components from neural sources, and automated artefact rejection based on peak-to-peak amplitude thresholds~\cite{yadav2025decoding}. For clinical BCI deployment, online artefact detection is essential because the user cannot be asked to remain still or re-record contaminated trials.
-
-\subsection{Inter-Subject Variability and BCI Illiteracy}
-
-Inter-subject variability is the primary bottleneck for cross-subject MI classification. Factors including skull thickness, cortical folding, individual differences in motor cortex organisation, and variation in imagery strategy produce ERD/ERS patterns that differ substantially between users under identical task conditions~\cite{yadav2025decoding}. In this thesis, individual LOSO accuracy with CSP+LDA ranged from 0.324 to 0.978 across 27 subjects, illustrating the extent of this variability.
-
-A subset of users show little or no detectable ERD/ERS modulation during motor imagery. These non-responders — sometimes termed \textit{BCI-illiterate} — cannot achieve reliable control with standard MI paradigms regardless of classifier choice~\cite{lotte2018review}. In this thesis, two subjects were excluded after diagnostics confirmed atypical lateralisation patterns rather than recording or pipeline errors. Addressing non-response remains an open problem; proposed approaches include extended neurofeedback training, alternative paradigms such as SSVEP, and personalised adaptive models.
-
-\subsection{Non-Stationarity}
-
-EEG signals are non-stationary: the statistical properties of the signal change over time within a session (due to fatigue, attention lapses, and electrode drift) and between sessions (due to day-to-day variation in mental state and electrode re-placement). A classifier calibrated in one session may require recalibration in subsequent sessions, imposing a per-session setup cost that limits practical usability. Adaptive algorithms that update the model incrementally during use without requiring explicit recalibration are an active area of research~\cite{lotte2018review}.
-
-\subsection{Practical Deployment Constraints}
-
-In clinical neurorehabilitation settings, several additional constraints apply. Electrode preparation using conductive gel to achieve low impedance can take 30--60 minutes and requires trained personnel, making daily use impractical for many patients. Dry electrode systems reduce preparation time but typically exhibit higher noise levels. Long-term wear causes scalp irritation. Finally, the cognitive demand of motor imagery varies with user fatigue and motivation, introducing session-to-session variability that is difficult to model statistically and compounds the non-stationarity problem described above.
 
 % =============================================================================
 \chapter{Conclusion}

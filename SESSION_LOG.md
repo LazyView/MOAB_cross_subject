@@ -153,3 +153,25 @@
 - EEGNet underperforms CSP+LDA on custom dataset alone (0.510 vs 0.703) — expected given small dataset + 3 channels; motivates transfer learning
 - BCI IV-2a 1-sample mismatch (1502 vs 1501) requires trimming in transfer learning pipeline
 - WSL venv is `venv_linux`; Windows venv is `venv` (both exist, use WSL for running)
+- Transfer learning results: custom-only 0.510±0.094, direct transfer 0.519±0.080, fine-tuned 0.514±0.068 — all near chance; std reduction is the main measurable benefit
+- Findings saved to `docs/transfer_learning_findings.md`
+- Task 4: Discussion chapter written — results interpretation, pipeline limitations, BCI practical limitations (artifacts, BCI illiteracy, non-stationarity, deployment constraints)
+- Fixed stale epoch count in thesis (840 → 1391 lh / 1511 rh); updated preprocessing table with both epoch windows
+- Thesis compiles cleanly
+
+**Next steps:**
+- Write Methods chapter (CSP, classifiers, evaluation strategy — currently \blindtext)
+- Write Results chapter (tables/figures from CSV results)
+- Write Conclusion chapter
+- Add per-subject bar chart visualization
+- Consider adding EEGNet section to Methods chapter
+
+## Session 2026-04-09
+
+**Completed:**
+- Moved `\section{Practical Limitations of BCI Systems}` from Discussion → Theoretical Background (after Cross-Subject Evaluation, before MOABB Framework)
+- Updated section intro to frame limitations as foundational motivation; added thesis-response sentences to Signal Artifacts and Inter-Subject Variability subsections
+- Discussion chapter now contains only: Interpretation of Results, Limitations of the Implemented Pipeline
+
+**Next steps:**
+- Continue writing remaining thesis chapters (Methods, Results, Conclusion)
