@@ -1,0 +1,52 @@
+# Pipeline Configuration
+# Edit this file to control which datasets and methods run_pipeline.py executes.
+# dataset_config.yaml is loaded automatically — do not duplicate its keys here.
+
+evaluation:
+  overwrite: true              # pass overwrite=True to CrossSubjectEvaluation
+
+datasets:
+  # - name: custom
+  #   class: dataset.custom_dataset.MotorImageryDataset
+  #   init_params:
+  #     data_path: "data/"
+  #     config_path: "config/dataset_config.yaml"
+  #   paradigm: {}
+
+  # To add a new dataset: copy the block below, fill in class/init_params/paradigm.
+  # Any MOABB dataset or custom class works — no code changes needed.
+  - name: bci2a
+    class: moabb.datasets.BNCI2014_001
+    init_params: {}
+    paradigm:
+      tmin: 0.5
+      tmax: 3.5
+      channels: ["C3", "C4", "Cz"]
+      resample: 500
+
+# Methods can be listed as a plain name (uses all defaults from dataset_config.yaml)
+# or as an object with a params block to override specific hyperparameters.
+#
+# Configurable params per method:
+#   CSP+LDA / CSP+LR / CSP+SVM  : n_components
+#   EEGNet / ShallowConvNet      : max_epochs, lr, batch_size
+methods:
+  # - name: CSP+LDA
+  - name: CSP+LR
+  # - name: CSP+SVM
+  # - name: EEGNet
+  # - name: ShallowConvNet
+  # Example: override EEGNet hyperparameters
+  # - name: EEGNet
+  #   params:
+  #     max_epochs: 200
+  #     lr: 0.0005
+  #     batch_size: 32
+
+transfer_learning:
+  enabled: false   # set to true to run EEGNet pretrain (BCI IV-2a) → fine-tune (custom)
+                   # requires EEGNet to have been run first (needs custom-only baseline)
+
+output:
+  results_dir: "results"
+  filename: "pipeline_results"  # _excluded_outliers suffix appended automatically

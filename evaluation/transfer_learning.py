@@ -2,15 +2,19 @@
 Transfer learning evaluation: EEGNet pretrained on BCI IV-2a, tested on custom dataset.
 
 Three conditions compared (all LOSO on the custom dataset):
-  1. custom-only    — loaded from existing results CSV (task 1)
+  1. custom-only    — loaded from pipeline_results[_excluded_outliers].csv (EEGNet pipeline)
   2. direct-transfer — pretrained on BCI IV-2a, tested with no adaptation
   3. fine-tuned     — pretrained on BCI IV-2a, fine-tuned on custom training subjects per fold
 
 Pretraining uses all 9 BCI IV-2a subjects. Fine-tuning uses a lower LR for fewer epochs.
 BCI IV-2a epochs are trimmed from 1502 to 1501 samples to match the custom dataset.
 
-Results saved to results/transfer_learning.csv
-Run from project root: python evaluation/transfer_learning.py
+Results saved to results/transfer_learning.csv.
+
+Can be run standalone:
+    python evaluation/transfer_learning.py
+
+Or called from run_pipeline.py when transfer_learning.enabled: true in pipeline.yaml.
 """
 
 import sys
@@ -35,180 +39,192 @@ from dataset.custom_dataset import MotorImageryDataset
 
 mne.set_log_level('WARNING')
 
-RESULTS_DIR = Path("results")
-RESULTS_DIR.mkdir(exist_ok=True)
 
-EXCLUDE_OUTLIERS = True
-OUTLIER_SUBJECTS = [7, 8]
+def run(dataset_cfg: dict, pipeline_cfg: dict) -> None:
+    """
+    Run transfer learning evaluation.
 
-# --- Config ---
-with open("config/dataset_config.yaml", 'r') as f:
-    config = yaml.safe_load(f)
+    Parameters
+    ----------
+    dataset_cfg  : dict  Contents of dataset_config.yaml.
+    pipeline_cfg : dict  Contents of pipeline.yaml (for output path).
+    """
+    sig_cfg  = dataset_cfg['signal']
+    dl_cfg   = dataset_cfg['dl']
+    out_cfg  = pipeline_cfg['output']
 
-sig_cfg = config['signal']
-dl_cfg = config['dl']
-N_TIMES = dl_cfg['n_times']   # 1501 — canonical size for both datasets
-N_CHANS = len(sig_cfg['channels'])  # 3
+    n_times  = dl_cfg['n_times']          # 1501 — canonical size for both datasets
+    n_chans  = len(sig_cfg['channels'])   # 3
+    device   = 'cuda' if torch.cuda.is_available() else 'cpu'
 
-device = 'cuda' if torch.cuda.is_available() else 'cpu'
-print(f"Using device: {device}")
+    results_dir = Path(out_cfg['results_dir'])
+    results_dir.mkdir(exist_ok=True)
 
-# ---------------------------------------------------------------------------
-# 1. Load BCI IV-2a
-# ---------------------------------------------------------------------------
-print("\n[1/4] Loading BCI IV-2a...")
+    print(f"\n{'='*60}")
+    print("Running: Transfer Learning (BCI IV-2a → custom)")
+    print(f"{'='*60}")
+    print(f"Using device: {device}")
 
-bci2a_paradigm = MotorImagery(
-    events=['left_hand', 'right_hand'],
-    n_classes=2,
-    fmin=sig_cfg['filter']['l_freq'],
-    fmax=sig_cfg['filter']['h_freq'],
-    tmin=0.5,
-    tmax=3.5,
-    channels=sig_cfg['channels'],
-    resample=sig_cfg['sfreq'],
-)
+    # -------------------------------------------------------------------------
+    # 1. Load BCI IV-2a
+    # -------------------------------------------------------------------------
+    print("\n[1/4] Loading BCI IV-2a...")
 
-X_bci, y_bci, _ = bci2a_paradigm.get_data(BNCI2014_001())
+    bci2a_paradigm = MotorImagery(
+        events=['left_hand', 'right_hand'],
+        n_classes=2,
+        fmin=sig_cfg['filter']['l_freq'],
+        fmax=sig_cfg['filter']['h_freq'],
+        tmin=0.5,
+        tmax=3.5,
+        channels=sig_cfg['channels'],
+        resample=sig_cfg['sfreq'],
+    )
 
-# Trim 1502 → 1501 samples (resampling artefact, see docs/design_decisions.md)
-X_bci = X_bci[:, :, :N_TIMES].astype(np.float32)
+    X_bci, y_bci, _ = bci2a_paradigm.get_data(BNCI2014_001())
+    X_bci = X_bci[:, :, :n_times].astype(np.float32)   # trim 1502 → 1501
 
-le = LabelEncoder()
-y_bci_enc = le.fit_transform(y_bci)
+    le = LabelEncoder()
+    y_bci_enc = le.fit_transform(y_bci)
+    print(f"    BCI IV-2a: {X_bci.shape}  classes: {le.classes_}")
 
-print(f"    BCI IV-2a: {X_bci.shape}  classes: {le.classes_}")
+    # -------------------------------------------------------------------------
+    # 2. Load custom dataset
+    # -------------------------------------------------------------------------
+    print("[2/4] Loading custom dataset...")
 
-# ---------------------------------------------------------------------------
-# 2. Load custom dataset
-# ---------------------------------------------------------------------------
-print("[2/4] Loading custom dataset...")
+    custom_dataset = MotorImageryDataset(
+        data_path=dataset_cfg['data_path'],
+        config_path="config/dataset_config.yaml"
+    )
 
-custom_dataset = MotorImageryDataset(
-    data_path=config['data_path'],
-    config_path="config/dataset_config.yaml"
-)
-if EXCLUDE_OUTLIERS:
-    custom_dataset.subject_list = [
-        s for s in custom_dataset.subject_list if s not in OUTLIER_SUBJECTS
-    ]
+    custom_paradigm = MotorImagery(
+        events=['left_hand', 'right_hand'],
+        n_classes=2,
+        fmin=sig_cfg['filter']['l_freq'],
+        fmax=sig_cfg['filter']['h_freq'],
+        tmin=dl_cfg['tmin'],
+        tmax=dl_cfg['tmax'],
+        baseline=tuple(dataset_cfg['epoch']['baseline']),
+    )
 
-custom_paradigm = MotorImagery(
-    events=['left_hand', 'right_hand'],
-    n_classes=2,
-    fmin=sig_cfg['filter']['l_freq'],
-    fmax=sig_cfg['filter']['h_freq'],
-    tmin=dl_cfg['tmin'],
-    tmax=dl_cfg['tmax'],
-    baseline=tuple(config['epoch']['baseline']),
-)
+    X_custom, y_custom, meta_custom = custom_paradigm.get_data(custom_dataset)
+    X_custom = X_custom.astype(np.float32)
+    y_custom_enc = le.transform(y_custom)
 
-X_custom, y_custom, meta_custom = custom_paradigm.get_data(custom_dataset)
-X_custom = X_custom.astype(np.float32)
-y_custom_enc = le.transform(y_custom)   # same encoder as BCI IV-2a
+    subject_ids     = meta_custom['subject'].values
+    unique_subjects = np.unique(subject_ids)
+    print(f"    Custom:    {X_custom.shape}  subjects: {len(unique_subjects)}")
 
-subject_ids = meta_custom['subject'].values
-unique_subjects = np.unique(subject_ids)
+    # -------------------------------------------------------------------------
+    # 3. Pretrain EEGNet on all BCI IV-2a data
+    # -------------------------------------------------------------------------
+    print(f"\n[3/4] Pretraining EEGNet on BCI IV-2a ({dl_cfg['max_epochs']} epochs)...")
 
-print(f"    Custom:    {X_custom.shape}  subjects: {len(unique_subjects)}")
-
-# ---------------------------------------------------------------------------
-# 3. Pretrain EEGNet on all BCI IV-2a data
-# ---------------------------------------------------------------------------
-print(f"\n[3/4] Pretraining EEGNet on BCI IV-2a ({dl_cfg['max_epochs']} epochs)...")
-
-pretrain_clf = EEGClassifier(
-    module=EEGNet,
-    module__n_chans=N_CHANS,
-    module__n_outputs=2,
-    module__n_times=N_TIMES,
-    module__final_conv_length='auto',
-    max_epochs=dl_cfg['max_epochs'],
-    lr=dl_cfg['lr'],
-    batch_size=dl_cfg['batch_size'],
-    train_split=None,
-    device=device,
-    verbose=0,
-)
-pretrain_clf.fit(X_bci, y_bci_enc)
-pretrained_state = deepcopy(pretrain_clf.module_.state_dict())
-print("    Pretraining done.")
-
-# ---------------------------------------------------------------------------
-# 4. LOSO evaluation on custom dataset
-# ---------------------------------------------------------------------------
-print(f"\n[4/4] LOSO on custom dataset ({len(unique_subjects)} subjects)...")
-print(f"      Direct transfer: no adaptation")
-print(f"      Fine-tuning    : {dl_cfg['fine_tune_epochs']} epochs, lr={dl_cfg['fine_tune_lr']}")
-print()
-
-records = []
-
-for i, test_subj in enumerate(unique_subjects):
-    train_mask = subject_ids != test_subj
-    test_mask  = subject_ids == test_subj
-
-    X_train, y_train = X_custom[train_mask], y_custom_enc[train_mask]
-    X_test,  y_test  = X_custom[test_mask],  y_custom_enc[test_mask]
-
-    # --- Variant A: direct transfer (restore pretrained weights, no training) ---
-    pretrain_clf.module_.load_state_dict(pretrained_state)
-    y_pred_A = pretrain_clf.predict(X_test)
-    score_A = accuracy_score(y_test, y_pred_A)
-
-    # --- Variant B: fine-tune on custom training subjects ---
-    finetune_clf = EEGClassifier(
+    pretrain_clf = EEGClassifier(
         module=EEGNet,
-        module__n_chans=N_CHANS,
+        module__n_chans=n_chans,
         module__n_outputs=2,
-        module__n_times=N_TIMES,
+        module__n_times=n_times,
         module__final_conv_length='auto',
-        max_epochs=dl_cfg['fine_tune_epochs'],
-        lr=dl_cfg['fine_tune_lr'],
+        max_epochs=dl_cfg['max_epochs'],
+        lr=dl_cfg['lr'],
         batch_size=dl_cfg['batch_size'],
         train_split=None,
-        warm_start=True,   # prevents skorch from reinitialising the module on fit()
         device=device,
         verbose=0,
     )
-    finetune_clf.initialize()                                    # fresh module + optimizer
-    finetune_clf.module_.load_state_dict(pretrained_state)       # load pretrained weights
-    finetune_clf.fit(X_train, y_train)                           # fine-tune
-    y_pred_B = finetune_clf.predict(X_test)
-    score_B = accuracy_score(y_test, y_pred_B)
+    pretrain_clf.fit(X_bci, y_bci_enc)
+    pretrained_state = deepcopy(pretrain_clf.module_.state_dict())
+    print("    Pretraining done.")
 
-    records.append({
-        'subject':         test_subj,
-        'direct_transfer': score_A,
-        'fine_tuned':      score_B,
-    })
-    print(f"  [{i+1:2d}/{len(unique_subjects)}] subject {test_subj:2d}  "
-          f"direct={score_A:.3f}  fine-tuned={score_B:.3f}")
+    # -------------------------------------------------------------------------
+    # 4. LOSO evaluation on custom dataset
+    # -------------------------------------------------------------------------
+    print(f"\n[4/4] LOSO on custom dataset ({len(unique_subjects)} subjects)...")
+    print(f"      Direct transfer : no adaptation")
+    print(f"      Fine-tuning     : {dl_cfg['fine_tune_epochs']} epochs, lr={dl_cfg['fine_tune_lr']}")
+    print()
 
-# ---------------------------------------------------------------------------
-# 5. Results
-# ---------------------------------------------------------------------------
-results_df = pd.DataFrame(records)
+    records = []
 
-# Load custom-only baseline from task 1
-custom_only_path = RESULTS_DIR / "dl_cross_subject_eval_excluded_outliers.csv"
-if custom_only_path.exists():
-    custom_only = pd.read_csv(custom_only_path)
-    custom_only_scores = custom_only[custom_only['pipeline'] == 'EEGNet'].set_index('subject')['score']
-    results_df['custom_only'] = results_df['subject'].map(custom_only_scores)
-else:
-    print(f"\nWARNING: {custom_only_path} not found — run dl_cross_subject_eval.py first.")
+    for i, test_subj in enumerate(unique_subjects):
+        train_mask = subject_ids != test_subj
+        test_mask  = subject_ids == test_subj
 
-print("\n=== Transfer Learning Results ===")
-cols = [c for c in ['custom_only', 'direct_transfer', 'fine_tuned'] if c in results_df.columns]
-print(results_df[['subject'] + cols].to_string(index=False, float_format='{:.3f}'.format))
+        X_train, y_train = X_custom[train_mask], y_custom_enc[train_mask]
+        X_test,  y_test  = X_custom[test_mask],  y_custom_enc[test_mask]
 
-print("\n=== Mean ± Std ===")
-for col in cols:
-    m, s = results_df[col].mean(), results_df[col].std()
-    print(f"  {col:<20} {m:.3f} ± {s:.3f}")
-print(f"  {'chance':<20} 0.500")
+        # Variant A: direct transfer
+        pretrain_clf.module_.load_state_dict(pretrained_state)
+        y_pred_A = pretrain_clf.predict(X_test)
+        score_A  = accuracy_score(y_test, y_pred_A)
 
-out_path = RESULTS_DIR / "transfer_learning.csv"
-results_df.to_csv(out_path, index=False)
-print(f"\nResults saved → {out_path}")
+        # Variant B: fine-tune on custom training subjects
+        finetune_clf = EEGClassifier(
+            module=EEGNet,
+            module__n_chans=n_chans,
+            module__n_outputs=2,
+            module__n_times=n_times,
+            module__final_conv_length='auto',
+            max_epochs=dl_cfg['fine_tune_epochs'],
+            lr=dl_cfg['fine_tune_lr'],
+            batch_size=dl_cfg['batch_size'],
+            train_split=None,
+            warm_start=True,
+            device=device,
+            verbose=0,
+        )
+        finetune_clf.initialize()
+        finetune_clf.module_.load_state_dict(pretrained_state)
+        finetune_clf.fit(X_train, y_train)
+        y_pred_B = finetune_clf.predict(X_test)
+        score_B  = accuracy_score(y_test, y_pred_B)
+
+        records.append({
+            'subject':         test_subj,
+            'direct_transfer': score_A,
+            'fine_tuned':      score_B,
+        })
+        print(f"  [{i+1:2d}/{len(unique_subjects)}] subject {test_subj:2d}  "
+              f"direct={score_A:.3f}  fine-tuned={score_B:.3f}")
+
+    # -------------------------------------------------------------------------
+    # 5. Results
+    # -------------------------------------------------------------------------
+    results_df = pd.DataFrame(records)
+
+    # Load EEGNet custom-only baseline from pipeline results if available
+    baseline_path = results_dir / f"{out_cfg['filename']}.csv"
+    if baseline_path.exists():
+        baseline     = pd.read_csv(baseline_path)
+        baseline_row = baseline[baseline['pipeline'] == 'EEGNet']
+        if not baseline_row.empty:
+            baseline_scores      = baseline_row.set_index('subject')['score']
+            results_df['custom_only'] = results_df['subject'].map(baseline_scores)
+        else:
+            print(f"\nWARNING: 'EEGNet' pipeline not found in {baseline_path} — custom_only column omitted.")
+    else:
+        print(f"\nWARNING: {baseline_path} not found — run EEGNet via run_pipeline.py first.")
+
+    print("\n=== Transfer Learning Results ===")
+    cols = [c for c in ['custom_only', 'direct_transfer', 'fine_tuned'] if c in results_df.columns]
+    print(results_df[['subject'] + cols].to_string(index=False, float_format='{:.3f}'.format))
+
+    print("\n=== Mean ± Std ===")
+    for col in cols:
+        m, s = results_df[col].mean(), results_df[col].std()
+        print(f"  {col:<20} {m:.3f} ± {s:.3f}")
+    print(f"  {'chance':<20} 0.500")
+
+    out_path = results_dir / "transfer_learning.csv"
+    results_df.to_csv(out_path, index=False)
+    print(f"\nResults saved → {out_path}")
+
+
+if __name__ == "__main__":
+    with open("config/dataset_config.yaml", 'r') as f:
+        dataset_cfg = yaml.safe_load(f)
+    with open("config/pipeline.yaml", 'r') as f:
+        pipeline_cfg = yaml.safe_load(f)
+    run(dataset_cfg, pipeline_cfg)

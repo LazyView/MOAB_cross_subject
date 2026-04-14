@@ -175,3 +175,30 @@
 
 **Next steps:**
 - Continue writing remaining thesis chapters (Methods, Results, Conclusion)
+
+## Session 2026-04-12
+
+**Completed:**
+- Added ShallowConvNet (`evaluation/shallow_cross_subject_eval.py`) — result: 0.680 ± 0.165 (competitive with CSP+LDA 0.703, lower std)
+- Implemented registry-based configurable pipeline:
+  - `methods/` package with factory functions for CSP+LDA/LR/SVM, EEGNet, ShallowConvNet
+  - `run_pipeline.py` — single entry point, loops over method × dataset pairs
+  - `config/pipeline.yaml` — user-facing config: select datasets, methods, per-method params
+  - Per-method hyperparameter overrides via `params:` block in pipeline.yaml
+  - Per-dataset paradigm overrides via `paradigm:` block; merge order base → method → dataset
+  - Dataset instantiation via `importlib` — adding any MOABB dataset is config-only, no code changes
+  - Transfer learning integrated as optional step (`transfer_learning.enabled: true`)
+- Deleted superseded standalone scripts: `cross_subject_eval.py`, `dl_cross_subject_eval.py`, `shallow_cross_subject_eval.py`, `extract_epochs.py`
+- Refactored `evaluation/transfer_learning.py` into callable `run(dataset_cfg, pipeline_cfg)`
+- Removed outlier exclusion logic from pipeline (was custom-dataset-specific, not appropriate as global setting)
+- Created `README.md` — project overview, config file guide, how to add methods/datasets
+
+**Next steps:**
+- Write Methods chapter (CSP, EEGNet, ShallowConvNet, evaluation strategy)
+- Write Results chapter (tables/figures from CSV results — include ShallowConvNet 0.680)
+- Write Conclusion chapter
+- Update thesis to reflect ShallowConvNet addition and pipeline restructure
+
+**Issues/Notes:**
+- ShallowConvNet results not yet saved to a persistent CSV — re-run via `run_pipeline.py` to regenerate
+- Transfer learning baseline CSV lookup now points to `pipeline_results.csv` (EEGNet pipeline); run EEGNet first before enabling transfer learning
