@@ -42,12 +42,9 @@ methods/
   eegnet.py              # EEGNet factory
   shallow.py             # ShallowConvNet factory
 
-preprocessing/
-  artifact_rejection.py  # peak-to-peak artifact rejection utility
-
 diagnostics/
-  dataset_analysis.py    # dataset statistics
-  inspect_below_chance.py
+  dataset_analysis.py        # dataset statistics (trial counts, class balance)
+  inspect_below_chance.py    # per-subject EEG plots for diagnosing low-accuracy subjects
 
 utils/
   file_utils.py          # BrainVision filename parsing helpers

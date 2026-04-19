@@ -118,7 +118,6 @@ def build_datasets(pipeline_cfg: dict, dataset_cfg: dict) -> list[dict]:
 
     To add a new dataset: add an entry to pipeline.yaml — no code changes needed.
     """
-    eval_cfg = pipeline_cfg['evaluation']
     entries  = []
 
     for ds in parse_datasets(pipeline_cfg['datasets']):

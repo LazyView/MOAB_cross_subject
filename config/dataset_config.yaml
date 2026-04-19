@@ -17,13 +17,8 @@ signal:
     l_freq: 8   # low frequency cutoff (Hz)
     h_freq: 30  # high frequency cutoff (Hz)
 
-# Artifact rejection
-artifact:
-  threshold: 100  # peak-to-peak threshold in microvolts
-
 # Event codes
 events:
-  rest_start: 1      # Event 1: start of rest phase
   rest_mid: 2        # Event 2: mid-rest (5s after rest start)
   movement_first: 5  # Event 5: first movement (often missing)
   movement_cont: 4   # Event 4: subsequent movements
