@@ -3,3 +3,4 @@ moabb==1.4.0
 numpy==2.3.4
 PyYAML==6.0.3
 braindecode
+matplotlib

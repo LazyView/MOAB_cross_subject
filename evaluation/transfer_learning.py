@@ -18,6 +18,7 @@ Or called from run_pipeline.py when transfer_learning.enabled: true in pipeline.
 """
 
 import sys
+from datetime import datetime
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
@@ -194,18 +195,21 @@ def run(dataset_cfg: dict, pipeline_cfg: dict) -> None:
     # -------------------------------------------------------------------------
     results_df = pd.DataFrame(records)
 
-    # Load EEGNet custom-only baseline from pipeline results if available
-    baseline_path = results_dir / f"{out_cfg['filename']}.csv"
-    if baseline_path.exists():
+    # Load EEGNet custom-only baseline from the most recent pipeline results file
+    stem = out_cfg['filename']
+    candidates = sorted(results_dir.glob(f"{stem}_*.csv"), key=lambda p: p.stat().st_mtime, reverse=True)
+    baseline_path = candidates[0] if candidates else None
+    if baseline_path:
         baseline     = pd.read_csv(baseline_path)
         baseline_row = baseline[baseline['pipeline'] == 'EEGNet']
         if not baseline_row.empty:
-            baseline_scores      = baseline_row.set_index('subject')['score']
+            baseline_scores           = baseline_row.set_index('subject')['score']
             results_df['custom_only'] = results_df['subject'].map(baseline_scores)
+            print(f"    Baseline loaded from: {baseline_path.name}")
         else:
-            print(f"\nWARNING: 'EEGNet' pipeline not found in {baseline_path} — custom_only column omitted.")
+            print(f"\nWARNING: 'EEGNet' pipeline not found in {baseline_path.name} — custom_only column omitted.")
     else:
-        print(f"\nWARNING: {baseline_path} not found — run EEGNet via run_pipeline.py first.")
+        print(f"\nWARNING: no '{stem}_*.csv' found in {results_dir} — run EEGNet via run_pipeline.py first.")
 
     print("\n=== Transfer Learning Results ===")
     cols = [c for c in ['custom_only', 'direct_transfer', 'fine_tuned'] if c in results_df.columns]
@@ -217,7 +221,8 @@ def run(dataset_cfg: dict, pipeline_cfg: dict) -> None:
         print(f"  {col:<20} {m:.3f} ± {s:.3f}")
     print(f"  {'chance':<20} 0.500")
 
-    out_path = results_dir / "transfer_learning.csv"
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    out_path  = results_dir / f"transfer_learning_{timestamp}.csv"
     results_df.to_csv(out_path, index=False)
     print(f"\nResults saved → {out_path}")
 
