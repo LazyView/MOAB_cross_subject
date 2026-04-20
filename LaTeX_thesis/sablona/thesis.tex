@@ -13,6 +13,9 @@
 \usepackage{csquotes}
 \usepackage{verbatim}
 
+% Allow TeX extra stretch on otherwise-overfull lines (identifier-heavy text).
+\setlength{\emergencystretch}{3em}
+
 % -----------------------------------------------------------------------------
 %   THESIS METADATA
 % -----------------------------------------------------------------------------
@@ -274,7 +277,7 @@ In clinical neurorehabilitation settings, several additional constraints apply. 
 
 The Mother of All BCI Benchmarks (MOABB) is an open-source Python framework for reproducible evaluation of BCI algorithms~\cite{jayaram2018moabb}. It provides standardised data loading, preprocessing pipelines, and evaluation protocols across a large collection of public EEG datasets, enabling fair comparison between methods.
 
-For this thesis, MOABB's \texttt{CrossSubjectEvaluation} class implements the LOSO protocol, handling epoch extraction, train/test splitting, and result aggregation in a consistent manner. The \texttt{MotorImagery} paradigm class applies bandpass filtering, baseline correction, and event-locked epoching according to a unified interface. By building on MOABB, the pipeline presented in this thesis is directly comparable to results reported for other methods on standard benchmark datasets.
+For this thesis, MOABB's \texttt{Cross\allowbreak Subject\allowbreak Evaluation} class implements the LOSO protocol, handling epoch extraction, train/test splitting, and result aggregation in a consistent manner. The \texttt{MotorImagery} paradigm class applies bandpass filtering, baseline correction, and event-locked epoching according to a unified interface. By building on MOABB, the pipeline presented in this thesis is directly comparable to results reported for other methods on standard benchmark datasets.
 
 % =============================================================================
 \chapter{Dataset and Preprocessing}
@@ -314,7 +317,7 @@ The raw recordings contain 18 EEG channels sampled at either 500\,Hz (Mochura pr
 
 \textbf{Mochura protocol.} The majority of subjects were recorded under a standard MI paradigm. Files follow the naming convention \texttt{<ID><gender><date><task><run>}, for example \texttt{1z01122020lh1} denotes subject~1, female, recorded on 01/12/2020, left-hand MI, run~1. Each subject has separate files for left-hand (\texttt{lh}) and right-hand (\texttt{rh}) runs, with some subjects having two runs per hand.
 
-\textbf{Saleh protocol.} A subset of subjects was recorded with an additional haptic feedback component. Files follow the convention \texttt{HR\_<date>\_<ID>\_<condition>\_<side>}, where \texttt{condition} indicates whether vibrotactile stimulation was present and \texttt{side} encodes the hand (\texttt{leva} = left, \texttt{prava} = right). For the purposes of this thesis, the haptic condition is not used as a classification variable; left and right recordings are treated equivalently to those from the Mochura protocol.
+\textbf{Saleh protocol.} A subset of subjects was recorded with an additional haptic feedback component. Files follow the convention \texttt{HR\_<date>\_\allowbreak<ID>\_\allowbreak<condition>\_\allowbreak<side>}, where \texttt{condition} indicates whether vibrotactile stimulation was present and \texttt{side} encodes the hand (\texttt{leva} = left, \texttt{prava} = right). For the purposes of this thesis, the haptic condition is not used as a classification variable; left and right recordings are treated equivalently to those from the Mochura protocol.
 
 \subsection{Experimental Paradigm}
 
@@ -366,8 +369,8 @@ Table~\ref{tab:datasets} summarises the key parameters of both datasets as used 
         Classes               & left hand, right hand   & left hand, right hand \\
         Trials per class      & ${\sim}54$ per subject$^\dagger$  & 144 per subject \\
         \hline
-        \multicolumn{3}{l}{\footnotesize $^*$One sample trimmed to 1501 for cross-dataset experiments.} \\
-        \multicolumn{3}{l}{\footnotesize $^\dagger$Slight class imbalance: 51.4 left-hand vs.\ 55.9 right-hand trials per subject on average (1490 vs.\ 1620 total).}
+        \multicolumn{3}{@{}p{0.95\textwidth}@{}}{\footnotesize $^*$One sample trimmed to 1501 for cross-dataset experiments.} \\
+        \multicolumn{3}{@{}p{0.95\textwidth}@{}}{\footnotesize $^\dagger$Slight class imbalance: 51.4 left-hand vs.\ 55.9 right-hand trials per subject on average (1490 vs.\ 1620 total).}
     \end{tabular}
 \end{table}
 
@@ -460,7 +463,7 @@ Each recording contributes approximately 20 epochs per class per run. Across all
 
 \subsection{MOABB Integration}
 
-The preprocessing pipeline is encapsulated in a custom subclass of MOABB's \texttt{BaseDataset}, which implements the \texttt{\_get\_single\_subject\_data} interface. On each call, the class locates all \texttt{.vhdr} files belonging to the requested subject using the composite ID scheme, applies the full preprocessing pipeline, maps event markers to class annotations, and returns the preprocessed \texttt{Raw} objects organised by session and run. This design allows MOABB's \texttt{CrossSubjectEvaluation} to handle epoch extraction and train/test splitting in a fully standardised manner.
+The preprocessing pipeline is encapsulated in a custom subclass of MOABB's \texttt{BaseDataset}, which implements the \texttt{\_get\_\allowbreak single\_\allowbreak subject\_\allowbreak data} interface. On each call, the class locates all \texttt{.vhdr} files belonging to the requested subject using the composite ID scheme, applies the full preprocessing pipeline, maps event markers to class annotations, and returns the preprocessed \texttt{Raw} objects organised by session and run. This design allows MOABB's \texttt{Cross\allowbreak Subject\allowbreak Evaluation} to handle epoch extraction and train/test splitting in a fully standardised manner.
 
 % =============================================================================
 \chapter{Methods}
@@ -541,7 +544,8 @@ The pipeline was designed to address three practical limitations of typical BCI 
 Each classification method is implemented as a \textit{factory function} with the signature:
 
 \begin{verbatim}
-def build_method(config: dict, params: dict) -> tuple[Pipeline, dict]
+def build_method(config: dict, params: dict)
+        -> tuple[Pipeline, dict]
 \end{verbatim}
 
 The function receives the full \texttt{dataset\_config.yaml} as \texttt{config} and any per-run hyperparameter overrides as \texttt{params}. It returns a scikit-learn \texttt{Pipeline} and a dictionary of paradigm parameter overrides (e.g., the epoch window required by deep learning methods). All factory functions are registered by name in a central \texttt{REGISTRY} dictionary in \texttt{methods/\_\_init\_\_.py}. The evaluation loop retrieves methods by name and never needs to know their implementation details.
@@ -591,11 +595,11 @@ methods:
       lr: 0.0005
 \end{verbatim}
 
-Methods listed without a \texttt{params} block use the defaults from \texttt{dataset\_config.yaml}. Hyperparameters can be overridden per-method without affecting other methods or the evaluation logic.
+Methods listed without a \texttt{params} block use the defaults from \texttt{dataset\_\allowbreak config.yaml}. Hyperparameters can be overridden per-method without affecting other methods or the evaluation logic.
 
 \subsection{Evaluation Execution}
 
-The entry point \texttt{run\_pipeline.py} reads both configuration files, instantiates all datasets and methods, and executes MOABB's \texttt{CrossSubjectEvaluation} for each method--dataset combination. Results are aggregated across all combinations, printed as a summary table, and saved to a timestamped CSV file (\texttt{results/pipeline\_results\_YYYYMMDD\_HHMMSS.csv}). Two plots are generated automatically: a per-subject grouped bar chart and a summary bar chart with mean~$\pm$~std error bars. Transfer learning is executed as an optional post-processing step when enabled in the configuration.
+The entry point \texttt{run\_pipeline.py} reads both configuration files, instantiates all datasets and methods, and executes MOABB's \texttt{Cross\allowbreak Subject\allowbreak Evaluation} for each method--dataset combination. Results are aggregated across all combinations, printed as a summary table, and saved to a timestamped CSV file (\texttt{results/\allowbreak pipeline\_\allowbreak results\_\allowbreak YYYYMMDD\_\allowbreak HHMMSS\allowbreak.csv}). Two plots are generated automatically: a per-subject grouped bar chart and a summary bar chart with mean~$\pm$~std error bars. Transfer learning is executed as an optional post-processing step when enabled in the configuration.
 
 % -----------------------------------------------------------------------------
 \section{Evaluation Strategy}
@@ -603,7 +607,7 @@ The entry point \texttt{run\_pipeline.py} reads both configuration files, instan
 
 \subsection{Leave-One-Subject-Out Cross-Validation}
 
-All methods are evaluated using Leave-One-Subject-Out (LOSO) cross-validation via MOABB's \texttt{CrossSubjectEvaluation} class. In each fold, one subject is held out as the test set and the remaining subjects form the training set. The classifier is trained from scratch (or fine-tuned, in the transfer learning condition) on each fold. Mean accuracy and standard deviation across all subjects are reported as the primary performance metrics.
+All methods are evaluated using Leave-One-Subject-Out (LOSO) cross-validation via MOABB's \texttt{Cross\allowbreak Subject\allowbreak Evaluation} class. In each fold, one subject is held out as the test set and the remaining subjects form the training set. The classifier is trained from scratch (or fine-tuned, in the transfer learning condition) on each fold. Mean accuracy and standard deviation across all subjects are reported as the primary performance metrics.
 
 \subsection{Datasets Used in Evaluation}
 
@@ -669,7 +673,7 @@ Per-subject accuracy for all five methods is shown in Figure~\ref{fig:per_subjec
 \section{BCI Competition IV Dataset 2a}
 % -----------------------------------------------------------------------------
 
-Table~\ref{tab:results_bci2a} reports results on BCI Competition IV Dataset~2a. MOABB's \texttt{CrossSubjectEvaluation} treats each recording session independently, yielding 18 evaluation entries (9 subjects $\times$ 2 sessions).
+Table~\ref{tab:results_bci2a} reports results on BCI Competition IV Dataset~2a. MOABB's \texttt{Cross\allowbreak Subject\allowbreak Evaluation} treats each recording session independently, yielding 18 evaluation entries (9 subjects $\times$ 2 sessions).
 
 \begin{table}[ht]
     \centering
