@@ -1,13 +1,14 @@
 """
 Transfer learning evaluation: EEGNet pretrained on BCI IV-2a, tested on custom dataset.
 
-Three conditions compared (all LOSO on the custom dataset):
-  1. custom-only    — loaded from pipeline_results[_excluded_outliers].csv (EEGNet pipeline)
+Three conditions compared (all LOSO on the custom dataset, same script and seed):
+  1. custom-only    — fresh EEGNet trained from scratch on custom training subjects
   2. direct-transfer — pretrained on BCI IV-2a, tested with no adaptation
   3. fine-tuned     — pretrained on BCI IV-2a, fine-tuned on custom training subjects per fold
 
 Pretraining uses all 9 BCI IV-2a subjects. Fine-tuning uses a lower LR for fewer epochs.
 BCI IV-2a epochs are trimmed from 1502 to 1501 samples to match the custom dataset.
+A fixed seed makes all three conditions reproducible and paired per subject.
 
 Results saved to results/transfer_learning.csv.
 
@@ -39,6 +40,16 @@ from moabb.paradigms import MotorImagery
 from dataset.custom_dataset import MotorImageryDataset
 
 mne.set_log_level('WARNING')
+
+SEED = 42
+
+
+def _set_seed(seed: int) -> None:
+    """Reset PyTorch / NumPy RNGs so every fresh classifier starts from the same state."""
+    torch.manual_seed(seed)
+    np.random.seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(seed)
 
 
 def run(dataset_cfg: dict, pipeline_cfg: dict) -> None:
@@ -122,6 +133,7 @@ def run(dataset_cfg: dict, pipeline_cfg: dict) -> None:
     # -------------------------------------------------------------------------
     print(f"\n[3/4] Pretraining EEGNet on BCI IV-2a ({dl_cfg['max_epochs']} epochs)...")
 
+    _set_seed(SEED)
     pretrain_clf = EEGClassifier(
         module=EEGNet,
         module__n_chans=n_chans,
@@ -143,6 +155,7 @@ def run(dataset_cfg: dict, pipeline_cfg: dict) -> None:
     # 4. LOSO evaluation on custom dataset
     # -------------------------------------------------------------------------
     print(f"\n[4/4] LOSO on custom dataset ({len(unique_subjects)} subjects)...")
+    print(f"      Custom-only     : train from scratch, {dl_cfg['max_epochs']} epochs, lr={dl_cfg['lr']}")
     print(f"      Direct transfer : no adaptation")
     print(f"      Fine-tuning     : {dl_cfg['fine_tune_epochs']} epochs, lr={dl_cfg['fine_tune_lr']}")
     print()
@@ -156,12 +169,32 @@ def run(dataset_cfg: dict, pipeline_cfg: dict) -> None:
         X_train, y_train = X_custom[train_mask], y_custom_enc[train_mask]
         X_test,  y_test  = X_custom[test_mask],  y_custom_enc[test_mask]
 
+        # Variant 0: custom-only (fresh EEGNet, no BCI IV-2a)
+        _set_seed(SEED)
+        custom_only_clf = EEGClassifier(
+            module=EEGNet,
+            module__n_chans=n_chans,
+            module__n_outputs=2,
+            module__n_times=n_times,
+            module__final_conv_length='auto',
+            max_epochs=dl_cfg['max_epochs'],
+            lr=dl_cfg['lr'],
+            batch_size=dl_cfg['batch_size'],
+            train_split=None,
+            device=device,
+            verbose=0,
+        )
+        custom_only_clf.fit(X_train, y_train)
+        y_pred_0 = custom_only_clf.predict(X_test)
+        score_0  = accuracy_score(y_test, y_pred_0)
+
         # Variant A: direct transfer
         pretrain_clf.module_.load_state_dict(pretrained_state)
         y_pred_A = pretrain_clf.predict(X_test)
         score_A  = accuracy_score(y_test, y_pred_A)
 
         # Variant B: fine-tune on custom training subjects
+        _set_seed(SEED)
         finetune_clf = EEGClassifier(
             module=EEGNet,
             module__n_chans=n_chans,
@@ -184,35 +217,20 @@ def run(dataset_cfg: dict, pipeline_cfg: dict) -> None:
 
         records.append({
             'subject':         test_subj,
+            'custom_only':     score_0,
             'direct_transfer': score_A,
             'fine_tuned':      score_B,
         })
         print(f"  [{i+1:2d}/{len(unique_subjects)}] subject {test_subj:2d}  "
-              f"direct={score_A:.3f}  fine-tuned={score_B:.3f}")
+              f"custom-only={score_0:.3f}  direct={score_A:.3f}  fine-tuned={score_B:.3f}")
 
     # -------------------------------------------------------------------------
     # 5. Results
     # -------------------------------------------------------------------------
     results_df = pd.DataFrame(records)
 
-    # Load EEGNet custom-only baseline from the most recent pipeline results file
-    stem = out_cfg['filename']
-    candidates = sorted(results_dir.glob(f"{stem}_*.csv"), key=lambda p: p.stat().st_mtime, reverse=True)
-    baseline_path = candidates[0] if candidates else None
-    if baseline_path:
-        baseline     = pd.read_csv(baseline_path)
-        baseline_row = baseline[baseline['pipeline'] == 'EEGNet']
-        if not baseline_row.empty:
-            baseline_scores           = baseline_row.set_index('subject')['score']
-            results_df['custom_only'] = results_df['subject'].map(baseline_scores)
-            print(f"    Baseline loaded from: {baseline_path.name}")
-        else:
-            print(f"\nWARNING: 'EEGNet' pipeline not found in {baseline_path.name} — custom_only column omitted.")
-    else:
-        print(f"\nWARNING: no '{stem}_*.csv' found in {results_dir} — run EEGNet via run_pipeline.py first.")
-
     print("\n=== Transfer Learning Results ===")
-    cols = [c for c in ['custom_only', 'direct_transfer', 'fine_tuned'] if c in results_df.columns]
+    cols = ['custom_only', 'direct_transfer', 'fine_tuned']
     print(results_df[['subject'] + cols].to_string(index=False, float_format='{:.3f}'.format))
 
     print("\n=== Mean ± Std ===")
