@@ -56,9 +56,11 @@ Tato práce představuje pipeline pro klasifikaci motorické představivosti (Mo
 
 % -----------------------------------------------------------------------------
 %   DECLARATION ON THE USE OF GENERATIVE AI
+%   (placed on an unnumbered page, between front matter and the table of contents)
 % -----------------------------------------------------------------------------
+\pagestyle{empty}
 \chapter*{Declaration on the Use of Generative AI}
-\addcontentsline{toc}{chapter}{Declaration on the Use of Generative AI}
+\thispagestyle{empty}
 
 In accordance with the ZČU methodology \emph{Pravidla legitimního využívání AI při studiu a tvůrčí činnosti} (version 1.0, December 2025), the author declares that generative AI was used during the preparation of this thesis for the purposes listed below.
 
@@ -77,6 +79,9 @@ In accordance with the ZČU methodology \emph{Pravidla legitimního využíván�
 
 \noindent After using this tool, the author carefully reviewed and edited the resulting content as needed and assumes full responsibility for the final content of this thesis, including the experimental results and the claims derived from them.
 
+\clearpage
+\pagestyle{fasthesisheadings}
+
 \tableofcontents
 
 % =============================================================================
@@ -91,7 +96,7 @@ A further practical challenge is the fragmented state of MI-BCI research softwar
 
 \textbf{This thesis addresses both challenges through the design and implementation of a configurable, extensible BCI evaluation pipeline.} The pipeline provides a unified framework for cross-subject evaluation of arbitrary classification methods across arbitrary EEG datasets. Methods and datasets are selected entirely through a YAML configuration file — no code changes are required to run a new combination. Classification methods are encapsulated as factory functions and registered by name; adding a new method requires implementing a single function and registering it in one place. Datasets are instantiated dynamically from dotted class paths, meaning any MOABB-compatible dataset can be added via configuration only. The pipeline handles paradigm parameter merging, result aggregation, CSV export, and visualisation automatically.
 
-The pipeline is validated through a comprehensive cross-subject evaluation comparing five classification methods — CSP+LDA, CSP+LR, CSP+SVM, EEGNet, and ShallowConvNet — on two datasets: a custom EEG dataset collected in the neuroinformatics laboratory at the Department of Computer Science and Engineering, University of West Bohemia, and the publicly available BCI Competition IV Dataset~2a. A transfer learning experiment investigates whether pretraining EEGNet on BCI IV-2a improves cross-subject accuracy on the custom dataset.
+The pipeline is validated through a comprehensive cross-subject evaluation comparing five classification methods --- Common Spatial Patterns (CSP) combined with Linear Discriminant Analysis (LDA), Logistic Regression (LR), and Support Vector Machine (SVM) classifiers (denoted CSP+LDA, CSP+LR, and CSP+SVM), together with two deep learning architectures, EEGNet and ShallowConvNet --- on two datasets: a custom EEG dataset collected in the neuroinformatics laboratory at the Department of Computer Science and Engineering, University of West Bohemia, and the publicly available BCI Competition IV Dataset~2a. A transfer learning experiment investigates whether pretraining EEGNet on BCI IV-2a improves cross-subject accuracy on the custom dataset.
 
 The thesis is structured as follows. Chapter~2 provides the theoretical background on BCIs, motor imagery, EEG signal processing, classical and deep learning classification methods, and cross-subject evaluation. Chapter~3 describes the datasets, the laboratory environment, a comparison of publicly available MI datasets, and the preprocessing pipeline. Chapter~4 describes the implemented methods and the pipeline architecture in detail. Chapter~5 presents the experimental results. Chapter~6 discusses the findings and limitations. Chapter~7 concludes the thesis.
 
@@ -205,7 +210,7 @@ The architecture consists of three stages:
 
 \begin{enumerate}
     \item \textbf{Temporal convolution.} A set of 1-D filters of length $\lfloor \text{sfreq}/2 \rfloor$ is convolved along the time axis across all channels simultaneously. This layer learns band-specific temporal filters analogous to a learned bandpass filter bank.
-    \item \textbf{Depthwise spatial convolution.} A depthwise convolution of kernel size $(C, 1)$ — where $C$ is the number of channels — learns a spatial filter for each temporal filter output. This is mathematically equivalent to learning a set of spatial projections (similar to CSP filters) for each frequency band. Batch normalisation and ELU activation follow, and an average pooling layer reduces temporal resolution.
+    \item \textbf{Depthwise spatial convolution.} A depthwise convolution of kernel size $(C, 1)$ — where $C$ is the number of channels — learns a spatial filter across channels for each temporal filter output. These spatial filters play a similar role to CSP, i.e., they extract discriminative spatial patterns from the EEG signal, here applied independently to every band-specific temporal feature map. Batch normalisation and ELU activation follow, and an average pooling layer reduces temporal resolution.
     \item \textbf{Separable convolution.} A pointwise convolution summarises the spatial-temporal feature maps, followed by another pooling stage and dropout for regularisation.
 \end{enumerate}
 
@@ -353,6 +358,8 @@ The paradigm is cue-based. Each trial begins with a 2-second fixation period, fo
 \subsection{Usage in this Thesis}
 
 Only the left-hand and right-hand classes are used, matching the binary classification task of the custom dataset. To align the two datasets for transfer learning, channels are restricted to C3, C4, and Cz and recordings are resampled from 250\,Hz to 500\,Hz. The epoch window is set to $+0.5$\,s to $+3.5$\,s relative to cue onset, capturing the 3-second active MI period and matching the epoch duration of the custom dataset.
+
+It must be acknowledged that, although both windows span the same 3\,s and yield the same input dimensionality of $1501$ samples, they are anchored to different events in the trial structure. The BCI IV-2a window is taken \emph{after} the visual cue and covers the post-cue preparatory and execution phase of motor imagery, whereas the custom-dataset window ends just \emph{before} the actual movement onset and therefore captures the pre-movement imagery interval. This temporal mis-alignment is a deliberate consequence of the differing trial protocols: BCI IV-2a is cue-locked, while the custom dataset is movement-locked and the active MI is most reliably localised before the marker. The two intervals therefore represent slightly different phases of the motor imagery process and constitute a known source of domain shift between the two datasets. This difference is taken into account when interpreting the transfer-learning results in Chapter~5: any benefit observed from BCI IV-2a pretraining is achieved \emph{despite}, not because of, this difference in trial structure.
 
 Table~\ref{tab:datasets} summarises the key parameters of both datasets as used in this thesis.
 
@@ -660,7 +667,7 @@ CSP+LDA and CSP+LR achieve the highest mean accuracy (0.674) and are nearly iden
 
 ShallowConvNet achieves a mean accuracy of 0.653, close to the CSP baseline, while exhibiting a notably lower standard deviation (0.177 vs.\ 0.218). This suggests that ShallowConvNet generalises more consistently across subjects even if its mean is marginally below CSP+LDA.
 
-EEGNet achieves a mean accuracy of 0.536, only marginally above chance. Its standard deviation is also the lowest of all methods (0.081), indicating that predictions are consistently near chance across subjects rather than highly variable. This reflects the difficulty of learning subject-invariant representations from three channels and ${\sim}54$ trials per class.
+EEGNet achieves a mean accuracy of 0.536, only marginally above chance. Its standard deviation is also the lowest of all methods (0.081), indicating that predictions are consistently near chance across subjects rather than highly variable. It reflects the difficulty of learning subject-invariant representations from limited data and low-channel EEG recordings.
 
 Per-subject accuracy for all five methods is shown in Figure~\ref{fig:per_subject_custom}. Inter-subject variability is substantial: CSP+LDA scores range from 0.174 to 1.000 across the 29 subjects. EEGNet and ShallowConvNet show a more compressed per-subject distribution, neither reaching the highest accuracies of the best CSP subjects nor dropping as far below chance.
 
