@@ -49,18 +49,15 @@ Tato práce představuje pipeline pro klasifikaci motorické představivosti (Mo
 \acknowledgement{I would like to thank my supervisor, doc. Ing. Roman Mouček, Ph.D., for his guidance and support throughout this thesis.}
 
 % -----------------------------------------------------------------------------
-%   DOCUMENT BODY
-% -----------------------------------------------------------------------------
-\begin{document}
-\frontpages[notm]
-
-% -----------------------------------------------------------------------------
 %   DECLARATION ON THE USE OF GENERATIVE AI
-%   (placed on an unnumbered page, between front matter and the table of contents)
+%   (injected into the front matter so the page is roman-numbered like the
+%   other front-matter pages; \long\def is used because the body spans multiple
+%   paragraphs and the class's \auxfrontmattercontent is a short macro)
 % -----------------------------------------------------------------------------
-\pagestyle{empty}
+\makeatletter
+\long\def\FASThesis@frontmatter@aux@content{%
 \chapter*{Declaration on the Use of Generative AI}
-\thispagestyle{empty}
+\thispagestyle{fasthesisfrontmatter}
 
 In accordance with the ZČU methodology \emph{Pravidla legitimního využívání AI při studiu a tvůrčí činnosti} (version 1.0, December 2025), the author declares that generative AI was used during the preparation of this thesis for the purposes listed below.
 
@@ -78,9 +75,14 @@ In accordance with the ZČU methodology \emph{Pravidla legitimního využíván�
 \end{itemize}
 
 \noindent After using this tool, the author carefully reviewed and edited the resulting content as needed and assumes full responsibility for the final content of this thesis, including the experimental results and the claims derived from them.
+}
+\makeatother
 
-\clearpage
-\pagestyle{fasthesisheadings}
+% -----------------------------------------------------------------------------
+%   DOCUMENT BODY
+% -----------------------------------------------------------------------------
+\begin{document}
+\frontpages[notm]
 
 \tableofcontents
 
