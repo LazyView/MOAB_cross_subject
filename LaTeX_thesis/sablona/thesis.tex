@@ -28,6 +28,46 @@
 \assignment{../../temata_vskp_-_podklady_pro_zadani_vskp.pdf}
 \signdate{1}{6}{2025}{Pilsen}
 
+% Shrink and centre the assignment PDF so its content is not pushed into the
+% printer's non-printable margin. The class default scales the PDF to the full
+% paper size, which can clip near the edges on physical printers.
+\makeatletter
+\def\FASThesis@typeset@assignments{%
+    \clearpage\thispagestyle{empty}%
+    \IfFileExists{\FASThesis@assignment@pdf}{%
+        \AddToShipoutPictureBG*{%
+            \AtPageCenter{%
+                \makebox(0,0){%
+                    \includegraphics[width=0.92\paperwidth, height=0.92\paperheight, keepaspectratio, page=1]{\FASThesis@assignment@pdf}%
+                }%
+            }%
+            \global\def\FASThesis@assignment@numberofpages{\pdflastximagepages}%
+        }%
+        \mbox{}%
+    }{%
+        \vspace*{.5\textheight}\parbox[b]{\textwidth}{\raggedright%
+            Místo této strany bude přední strana zadání vaší kvalifikační práce.}%
+    }%
+    \newpage\thispagestyle{empty}%
+    \IfFileExists{\FASThesis@assignment@pdf}{%
+        \ifnum\FASThesis@assignment@numberofpages>1%
+            \AddToShipoutPictureBG*{%
+                \AtPageCenter{%
+                    \makebox(0,0){%
+                        \includegraphics[width=0.92\paperwidth, height=0.92\paperheight, keepaspectratio, page=2]{\FASThesis@assignment@pdf}%
+                    }%
+                }%
+            }%
+        \fi%
+        \mbox{}%
+    }{%
+        \vspace*{.5\textheight}\parbox[b]{\textwidth}{\raggedright%
+            Místo této strany bude zadní strana zadání vaší kvalifikační práce.}%
+    }%
+    \newpage%
+}
+\makeatother
+
 \addbibresource{thesis.bib}
 
 % -----------------------------------------------------------------------------
